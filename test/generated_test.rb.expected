@@ -1,5 +1,7 @@
 ok  smol.css compiled in verbatim => true
 ok  syntax.css compiled in verbatim => true
+ok  entity table is populated => true
+ok  entity table maps a known name => 233
 ok  post page is a document => true
 ok  index is a document => true
 ok  404 is a document => true

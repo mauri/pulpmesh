@@ -30,8 +30,16 @@ module Harness
 
   def self.check(label, got, want)
     failed unless got == want
-    puts "#{got == want ? "ok " : "FAIL"} #{label} => #{got.inspect}"
-    puts "     wanted #{want.inspect}" unless got == want
+    puts "#{got == want ? "ok " : "FAIL"} #{label} => #{ascii(got.inspect)}"
+    puts "     wanted #{ascii(want.inspect)}" unless got == want
+  end
+
+  # CRuby's String#inspect escapes non-ascii under a non-UTF-8 locale and prints
+  # it literally under a UTF-8 one, so a snapshot would otherwise depend on the
+  # locale of whoever regenerated it. Escaping here makes the output the same
+  # everywhere, and the same as the compiled binary's.
+  def self.ascii(text)
+    text.each_char.map { |char| char.ord < 128 ? char : format("\\u%04X", char.ord) }.join
   end
 
   # Only ok/FAIL, for a value that is real but not reproducible (an mtime, an

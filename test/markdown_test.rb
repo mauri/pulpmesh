@@ -57,3 +57,49 @@ Harness.check("bare bracket is literal", MD.render("[1] a footnote marker"),
 Harness.check("quotes stay straight", MD.render("It's a \"quote\""), "<p>It's a \"quote\"</p>\n")
 Harness.check("markup characters escaped", MD.render("5 < 6 & 7 > 4"),
               "<p>5 &lt; 6 &amp; 7 &gt; 4</p>\n")
+
+# Raw html passes through as kramdown passed it.
+Harness.check("paired inline tag", MD.render("a <b>bold</b> c"), "<p>a <b>bold</b> c</p>\n")
+Harness.check("unclosed tag is closed at the end of the block",
+              MD.render("AT&T and <b> tags"), "<p>AT&amp;T and <b> tags</b></p>\n")
+Harness.check("nested unclosed tags close innermost first",
+              MD.render("a <b> <i> c"), "<p>a <b> <i> c</i></b></p>\n")
+Harness.check("crossed pair leaves the stray close as text",
+              MD.render("a <b><i>x</b></i> c"), "<p>a <b><i>x&lt;/b&gt;</i> c</b></p>\n")
+Harness.check("closing tag with no opener is text",
+              MD.render("a </b> c"), "<p>a &lt;/b&gt; c</p>\n")
+Harness.check("void element is self-closed", MD.render("a <br> b"), "<p>a <br /> b</p>\n")
+Harness.check("attributes are normalised",
+              MD.render(%(a <span class="x" data-y='z'>s</span> b)),
+              "<p>a <span class=\"x\" data-y=\"z\">s</span> b</p>\n")
+Harness.check("bare attribute gets an empty value",
+              MD.render("a <input disabled> b"), "<p>a <input disabled=\"\" /> b</p>\n")
+Harness.check("attribute value is escaped",
+              MD.render(%(a <b title="x>y">z</b> c)), "<p>a <b title=\"x&gt;y\">z</b> c</p>\n")
+Harness.check("tag name is lowercased", MD.render("a <B>x</B> b"), "<p>a <b>x</b> b</p>\n")
+Harness.check("markdown inside a tag is still rendered",
+              MD.render("a <b>*it*</b> b"), "<p>a <b><em>it</em></b> b</p>\n")
+Harness.check("comment passes through", MD.render("a <!-- hi --> b"), "<p>a <!-- hi --> b</p>\n")
+Harness.check("lt that is not a tag stays literal", MD.render("5 < 6 and a <3 b"),
+              "<p>5 &lt; 6 and a &lt;3 b</p>\n")
+Harness.check("tag inside a code span is escaped",
+              MD.render("use `<b>` here"), "<p>use <code>&lt;b&gt;</code> here</p>\n")
+Harness.check("block level element is a raw block",
+              MD.render("text\n\n<div>x</div>\n\ntext"),
+              "<p>text</p>\n\n<div>x</div>\n\n<p>text</p>\n")
+Harness.check("nested block level element", MD.render("<div>\n<div>x</div>\n</div>"),
+              "<div>\n<div>x</div>\n</div>\n")
+Harness.check("void block is normalised and closes the document",
+              MD.render("<hr>"), "<hr />\n\n")
+
+# Entities are decoded and re-escaped, never double-escaped.
+Harness.check("named entity survives", MD.render("AT&T &amp; co"), "<p>AT&amp;T &amp; co</p>\n")
+Harness.check("numeric entity decoded", MD.render("a &#x41; b"), "<p>a A b</p>\n")
+Harness.check("unknown entity stays literal", MD.render("a &bogus; b"), "<p>a &amp;bogus; b</p>\n")
+Harness.check("latin-1 named entity", MD.render("Caf&eacute;"), "<p>Caf\u00E9</p>\n")
+Harness.check("entity names are case sensitive", MD.render("&Eacute; &eacute;"), "<p>\u00C9 \u00E9</p>\n")
+Harness.check("typographic entity", MD.render("a &mdash; b"), "<p>a \u2014 b</p>\n")
+Harness.check("non-ascii numeric entity", MD.render("a &#233; b"), "<p>a \u00E9 b</p>\n")
+# Left literal on purpose: spinel's strings are NUL-terminated at the C
+# boundary, so decoding this would truncate the document.
+Harness.check("nul entity is refused", MD.render("a &#0; b"), "<p>a &amp;#0; b</p>\n")

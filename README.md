@@ -24,7 +24,7 @@ constants inside it, so there is no gem directory to read at runtime.
 
 | gem | here |
 | --- | --- |
-| kramdown | `pulpmesh/markdown.rb` — the markdown the blog uses, not CommonMark |
+| kramdown | `pulpmesh/markdown.rb` — the markdown the blog uses, not CommonMark, with kramdown's raw-html and entity behaviour |
 | Rouge | `pulpmesh/highlight.rb` — hand-rolled `sh` and `ruby` tokenizers emitting Rouge's class names |
 | ERB | `templates/*.erb` compiled ahead of time by Erubi into `pulpmesh/templates.rb` |
 | WEBrick | `pulpmesh/server.rb` on `TCPServer` |
@@ -34,6 +34,14 @@ constants inside it, so there is no gem directory to read at runtime.
 
 Output is byte-identical to the gem's across the real blog and both fixture
 sites, with and without `base_url`.
+
+Raw html passes through as kramdown passed it: an inline tag is emitted
+normalised (name lowercased, attributes quoted and escaped, void elements
+self-closed), a tag left open is closed at the end of its block innermost-first,
+a line opening a block-level element becomes a raw block, and a `<` that does not
+begin a real tag stays literal. Html entities are decoded from kramdown's own
+table. The one deliberate exception is `&#0;`, left literal because spinel's
+strings are NUL-terminated at the C boundary.
 
 ## CLI
 
@@ -52,17 +60,18 @@ offered.
 ## Development
 
 ```sh
-rake generate   # regenerate pulpmesh/templates.rb and pulpmesh/assets.rb
+rake generate   # regenerate templates.rb, assets.rb and entities.rb
 spin build
 spin test       # six snapshot programs, 115 checks
 rake check      # fail if the committed codegen artifacts are stale
 rake parity     # re-run every test under CRuby against the same snapshots
 ```
 
-`pulpmesh/templates.rb` and `pulpmesh/assets.rb` are **generated and committed** —
-`spin.toml` has no pre-build hook. Never hand-edit them; edit `templates/*.erb`
-or `assets/*.css` and run `rake generate`. Erubi is a dev-machine tool, not a
-dependency of the binary.
+`pulpmesh/templates.rb`, `pulpmesh/assets.rb` and `pulpmesh/entities.rb` are
+**generated and committed** — `spin.toml` has no pre-build hook. Never hand-edit
+them; edit `templates/*.erb` or `assets/*.css` and run `rake generate`. Erubi and
+kramdown are dev-machine tools for that task only — kramdown supplies the entity
+table as data — and neither is a dependency of the binary.
 
 ## spinel bugs found here
 

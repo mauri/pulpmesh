@@ -20,6 +20,10 @@ Harness.check("smol.css compiled in verbatim",
 Harness.check("syntax.css compiled in verbatim",
               Pulpmesh::Assets::SYNTAX.bytes == File.read(File.join(PROJECT, "assets", "syntax.css")).bytes, true)
 
+# The entity table came through the same codegen.
+Harness.check("entity table is populated", Pulpmesh::Markdown::ENTITIES.size > 800, true)
+Harness.check("entity table maps a known name", Pulpmesh::Markdown::ENTITIES["eacute"], 233)
+
 # Every template has a render method, and each produces the document it should.
 Harness.build("generated", Harness::FIXTURE) do |_site, out|
   Harness.check("post page is a document",

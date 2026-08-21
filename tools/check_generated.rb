@@ -8,7 +8,8 @@ require_relative "codegen"
 failures = []
 {
   "pulpmesh/templates.rb" => generated_templates,
-  "pulpmesh/assets.rb" => generated_assets
+  "pulpmesh/assets.rb" => generated_assets,
+  "pulpmesh/entities.rb" => generated_entities
 }.each do |relative, regenerated|
   path = File.join(ROOT, relative)
   if File.read(path) == regenerated

@@ -14,6 +14,12 @@ task :assets do
   puts "wrote pulpmesh/assets.rb"
 end
 
+desc "regenerate pulpmesh/entities.rb from kramdown's entity table"
+task :entities do
+  File.write(File.join(ROOT, "pulpmesh", "entities.rb"), generated_entities)
+  puts "wrote pulpmesh/entities.rb"
+end
+
 desc "fail if the committed artifacts are stale"
 task :check do
   ruby "-e", "require_relative 'tools/check_generated'"
@@ -24,5 +30,5 @@ task :parity do
   ruby "-e", "require_relative 'tools/check_parity'"
 end
 
-task generate: %i[templates assets]
+task generate: %i[templates assets entities]
 task default: %i[generate check parity]
