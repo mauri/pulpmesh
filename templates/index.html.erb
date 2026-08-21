@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset='utf-8'>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title><%= h config.title %></title>
+
+        <meta name="keywords" content="<%= h config.keywords %>" />
+<% if config.favicon -%>
+        <link rel="icon" type="image/png" sizes="16x16" href="<%= h config.favicon %>">
+<% end -%>
+
+<meta name="description" content="<%= h config.description %>" />
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="<%= h config.title %>">
+<% if url_for -%>
+<meta property="og:url" content="<%= h url_for %>">
+<% end -%>
+<meta property="og:title" content="<%= h config.title %>">
+<meta property="og:description" content="<%= h config.description %>">
+<% if config.card_image -%>
+
+<meta property="og:image:width" content="300" />
+<meta property="og:image:height" content="300" />
+<meta itemprop="image" content="<%= h config.card_image %>" />
+<meta property="og:image" content="<%= h config.card_image %>" />
+
+<meta name="twitter:image" content="<%= h config.card_image %>" />
+<% end -%>
+
+<meta property="twitter:card" content="summary">
+<% if url_for -%>
+<meta property="twitter:url" content="<%= h url_for %>">
+<% end -%>
+<meta property="twitter:title" content="<%= h config.title %>">
+<meta property="twitter:description" content="<%= h config.description %>">
+<% if url_for -%>
+
+<link rel="alternate" href="rss.xml" type="application/rss+xml" title="RSS feed for <%= h config.title %>" />
+<% end -%>
+
+<link rel="stylesheet" href="smol.css" />
+<link rel="stylesheet" href="syntax.css" />
+<% if config.styles? -%>
+<link rel="stylesheet" href="_styles.css" />
+<% end -%>
+
+    </head>
+    <body id="blog" class="layout-<%= h config.layout %>">
+
+<header class="text-center">
+    <h1 class="text-2xl font-bold mt-2"><%= h config.title %></h1>
+    <span><%= h config.description %></span>
+<% if url_for -%>
+    <nav>
+        <a href="rss.xml" class="text-lg transform-none">rss</a>
+    </nav>
+<% end -%>
+    <hr />
+</header>
+<main>
+<% if config.intro_html -%>
+
+    <section>
+        <article class="md">
+<%= config.intro_html %>
+        </article>
+        <hr />
+    </section>
+<% end -%>
+
+    <section class="posts group mt-2">
+<% posts.each do |entry| -%>
+
+        <article>
+            <div class="flex items-center">
+                <time datetime="<%= iso entry.date %>" class="text-sm post-date"><%= ymd entry.date %></time>
+                <span class="text-md flex-1 m-0 transform-none"><a href="<%= h entry.filename %>"><%= h entry.title %></a></span>
+            </div>
+        </article>
+<% end -%>
+
+    </section>
+</main>
+
+<footer>
+    <hr />
+    <%= config.footer %>
+</footer>
+
+</body>
+</html>
