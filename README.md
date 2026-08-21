@@ -62,7 +62,7 @@ offered.
 ```sh
 rake generate   # regenerate templates.rb, assets.rb and entities.rb
 spin build
-spin test       # six snapshot programs, 115 checks
+spin test       # six snapshot programs, 142 checks
 rake check      # fail if the committed codegen artifacts are stale
 rake parity     # re-run every test under CRuby against the same snapshots
 ```
@@ -73,13 +73,3 @@ them; edit `templates/*.erb` or `assets/*.css` and run `rake generate`. Erubi an
 kramdown are dev-machine tools for that task only — kramdown supplies the entity
 table as data — and neither is a dependency of the binary.
 
-## spinel bugs found here
-
-Five, each with a runnable reproduction under `docs/repro/`:
-
-- [docs/spinel-bugs.md](docs/spinel-bugs.md) — an empty array literal in a `case`
-  branch compiles to `nil`, and then segfaults when used.
-- [docs/spinel-bugs-regex-and-types.md](docs/spinel-bugs-regex-and-types.md) —
-  `\p{...}` matches nothing; `String.new` on a poly value fails to compile.
-- [docs/spinel-bugs-method-lookup.md](docs/spinel-bugs-method-lookup.md) — a
-  top-level `def` shadows a class's own method of the same name.
