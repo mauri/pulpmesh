@@ -1,0 +1,16 @@
+ok  ordinal prefix dropped => "ordinal-prefixed"
+ok  filename from slug => "ordinal-prefixed.html"
+ok  date prefix dropped => "date-prefixed"
+ok  unprefixed name kept => "with-code"
+ok  title from leading heading => "Ordinal prefixed post"
+ok  heading not left in body => false
+ok  body kept => true
+ok  date from front matter => "2024-03-04"
+ok  date from filename prefix => "2025-10-01"
+ok  tags parsed => ["ruby", "testing"]
+ok  description parsed => "the one with the ordinal prefix"
+ok  untagged post has no tags => []
+ok  draft recognised => true
+ok  non-draft recognised => false
+ok  code block highlighted => true
+ok  date falls back to mtime
