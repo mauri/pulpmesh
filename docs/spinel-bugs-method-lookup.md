@@ -1,10 +1,11 @@
-# spinel bug: top-level methods shadow a class's own methods
+# spinel bug: a top-level method shadows a class's own method of the same name
 
-Found 2026-08-21, while porting pulpmesh's test suite. Third in a series with
-[spinel-bugs.md](spinel-bugs.md) (the `case`/empty-array miscompile) and
-[spinel-bugs-regex-and-types.md](spinel-bugs-regex-and-types.md) (`\p{...}` and
-`String.new`). This is the worst of the five: it silently returns the wrong
-value, from a construct with no warning sign at the call site.
+**Method lookup is inverted for top-level definitions.** An unqualified call
+inside a class dispatches to a same-named top-level method instead of to the
+class's own. It happens silently: no warning at compile time, no error at run
+time, just the other method's return value.
+
+Found 2026-08-21 while compiling a Ruby project's test suite with spinel.
 
 | | |
 | --- | --- |
@@ -14,18 +15,18 @@ value, from a construct with no warning sign at the call site.
 | compared against | CRuby 3.3.9 |
 
 Reproduction: [`repro/toplevel_method_shadowing.rb`](repro/toplevel_method_shadowing.rb),
-self-checking — all four lines print `ok` under CRuby.
+self-checking — every line prints `ok` under CRuby.
 
 ```sh
 ruby docs/repro/toplevel_method_shadowing.rb
 spinel docs/repro/toplevel_method_shadowing.rb -o /tmp/shadow && /tmp/shadow
 ```
 
-## 5. Method lookup is inverted for top-level definitions
+## The bug
 
 In CRuby a top-level `def` is a private instance method on `Object`. A class's
-own method therefore wins for instances of that class — normal lookup, the class
-before its ancestors. **Under spinel the top-level method wins instead.**
+own method therefore wins for instances of that class — ordinary lookup, the
+class before its ancestors. Under spinel the top-level method wins instead.
 
 ```ruby
 class Greeter
@@ -47,56 +48,64 @@ Greeter.new.render
 # spinel: "from the top level"
 ```
 
-No warning, no error — just the other method's return value.
+## It can also raise, or fail the build
 
-### It can also raise, or fail the build
-
-The visible symptom depends on what the two definitions look like. With
-mismatched arity it becomes a runtime error, still pointing nowhere near the
+The visible symptom depends on what the two definitions look like. Where the
+arities differ it becomes a runtime error that points nowhere near the
 top-level `def`:
 
 ```ruby
 class Labelled
   attr_reader :label
-  def render = "<#{label}>"
+
+  def render
+    "<#{label}>"
+  end
 end
 
-def label(prefix) = "#{prefix}!"
+def label(prefix)
+  "#{prefix}!"
+end
 
 Labelled.new("a").render
 # CRuby:  "<a>"
 # spinel: ArgumentError: wrong number of arguments (given 0, expected 1)
 ```
 
-And when the types cannot be reconciled it fails the C compile, naming the
+Where the types cannot be reconciled at all it fails the C compile, naming a
 generated symbol rather than either definition:
 
 ```
 error: initializing 'sp_RbVal' with an expression of incompatible type 'sp_Post *'
 ```
 
-### Severity
+## Severity
 
-The highest of the bugs found so far. The other four either fail the build or
-mangle a value in a way that shows up quickly; this one **silently calls a
-different method**, and the two definitions can be in different files with
-nothing at the call site to suggest a conflict.
+The silent form is the dangerous one. The program keeps running and returns a
+plausible value from the wrong method, and the two definitions can sit in
+different files with nothing at the call site to suggest a conflict.
 
-It is also easy to hit by accident. A test file that defines a small helper at
-the top level — `def post(...)`, `def config(...)`, `def render(...)` — will
-quietly capture every unqualified call to a same-named method anywhere in the
-program.
+It is easy to hit by accident. A file that defines a small helper at the top
+level — `def post(...)`, `def config(...)`, `def render(...)` — captures every
+unqualified call to a same-named method anywhere in the program, including
+methods belonging to classes it has nothing to do with.
 
-### Workaround
+It is also harder to diagnose than a normal compile failure, because the same
+file behaves correctly under CRuby. A test that passes under `ruby` and fails
+under spinel gives no hint that the cause is a name collision.
 
-Do not define top-level methods whose names collide with any method in the
-program. Give helpers a distinguishing prefix, or define them inside a module.
+## Workaround
 
-### Where this hit the port
+Do not define top-level methods whose names collide with any method name used
+elsewhere in the program. Give top-level helpers a distinguishing prefix, or
+define them inside a module or class rather than at the top level.
 
-`test/post_test.rb` had a top-level `def post(name)` returning a `Post`. The
-generated templates call `post` unqualified inside `Site::Context`, where it is
-an `attr_reader`. The result was a C compile error against `pulpmesh/templates.rb`
-that never mentioned the test file. The same file runs correctly under CRuby,
-which is what made it confusing: `spin test` compiled one thing and `ruby` ran
-another. Renaming the helper to `fixture_post` fixed it.
+## How it was found
+
+A test file for a static site generator defined a top-level helper
+`def post(name)` returning a `Post` object. Elsewhere in the same program, an
+`attr_reader :post` on a `Site::Context` class is called unqualified from
+generated template code. Compiling the test produced a C type error against the
+generated template file, which never mentioned the test file or the helper. The
+identical file ran correctly under CRuby. Renaming the helper to `fixture_post`
+resolved it.
