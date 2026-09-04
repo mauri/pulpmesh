@@ -1,0 +1,136 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  # spinel is built from source: it compiles pulpmesh ahead of time, and the
+  # binary it emits matches the machine it runs on, so every target builds on
+  # its own runner. Pin SPINEL_REF to a tag or sha to freeze the compiler.
+  SPINEL_REPO: matz/spinel
+  SPINEL_REF: master
+
+jobs:
+  checks:
+    # CRuby-only guards: neither needs spinel, so they fail fast and in parallel
+    # with the matrix below.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3.9"
+      - run: gem install --no-document erubi kramdown
+      - name: Committed codegen is up to date
+        run: rake check
+      - name: CRuby matches the spinel snapshots
+        run: rake parity
+
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux-x86_64
+            os: ubuntu-24.04
+          - target: macos-arm64
+            os: macos-15
+          - target: macos-x86_64
+            os: macos-15-intel
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: pulpmesh
+
+      - name: Check out spinel
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.SPINEL_REPO }}
+          ref: ${{ env.SPINEL_REF }}
+          path: spinel
+
+      - id: spinel-rev
+        run: echo "sha=$(git -C spinel rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      # Restore/save rather than the combined action: a half-built spinel from a
+      # failed job must not be cached under a key later runs would trust.
+      - name: Restore spinel build
+        id: spinel-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: spinel
+          key: spinel-${{ matrix.target }}-${{ steps.spinel-rev.outputs.sha }}
+
+      - name: Build spinel
+        if: steps.spinel-cache.outputs.cache-hit != 'true'
+        run: |
+          make -C spinel deps
+          make -C spinel -j"$(getconf _NPROCESSORS_ONLN)"
+
+      - name: Save spinel build
+        if: steps.spinel-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: spinel
+          key: spinel-${{ matrix.target }}-${{ steps.spinel-rev.outputs.sha }}
+
+      - run: echo "$GITHUB_WORKSPACE/spinel/bin" >> "$GITHUB_PATH"
+
+      - name: Build pulpmesh
+        working-directory: pulpmesh
+        run: spin build
+
+      - name: Test
+        working-directory: pulpmesh
+        run: spin test
+
+      - name: Smoke-test the binary
+        working-directory: pulpmesh
+        run: ./build/bin/pulpmesh --version
+
+      # Upload as a tarball: the zip GitHub wraps artifacts in does not carry
+      # the executable bit, and these are shipped straight to users.
+      - name: Package
+        working-directory: pulpmesh
+        run: tar -czf "pulpmesh-${{ matrix.target }}.tar.gz" -C build/bin pulpmesh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pulpmesh-${{ matrix.target }}
+          path: pulpmesh/pulpmesh-${{ matrix.target }}.tar.gz
+          if-no-files-found: error
+
+  release:
+    # Publishes only for a v* tag; every other run stops at the artifacts above.
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [checks, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: pulpmesh-*
+          merge-multiple: true
+
+      - name: Checksums
+        working-directory: dist
+        run: sha256sum *.tar.gz | tee SHA256SUMS
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* --verify-tag --generate-notes
+          fi
