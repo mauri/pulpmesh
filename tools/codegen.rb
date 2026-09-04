@@ -54,7 +54,7 @@ def generated_assets
     name = File.basename(path, ".css").upcase.gsub("-", "_")
     # String#dump rather than a heredoc: the result is a plain double-quoted
     # literal that reproduces the file byte for byte whatever the css contains.
-    "    #{name} = #{File.read(path).dump}.freeze"
+    "    #{name} = #{File.binread(path).dump}.freeze"
   end
 
   <<~HEADER + entries.join("\n") + <<~FOOTER
