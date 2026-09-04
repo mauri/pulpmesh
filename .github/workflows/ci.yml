@@ -9,15 +9,16 @@ on:
 
 env:
   # spinel is built from source: it compiles pulpmesh ahead of time, and the
-  # binary it emits matches the machine it runs on, so every target builds on
-  # its own runner. Pin SPINEL_REF to a tag or sha to freeze the compiler.
+  # binary it emits matches the machine it runs on. Pin SPINEL_REF to a tag or
+  # sha to freeze the compiler.
   SPINEL_REPO: matz/spinel
   SPINEL_REF: master
+  TARGET: linux-x86_64
 
 jobs:
   checks:
     # CRuby-only guards: neither needs spinel, so they fail fast and in parallel
-    # with the matrix below.
+    # with the build below.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,17 +32,7 @@ jobs:
         run: rake parity
 
   build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: linux-x86_64
-            os: ubuntu-24.04
-          - target: macos-arm64
-            os: macos-15
-          - target: macos-x86_64
-            os: macos-15-intel
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -64,7 +55,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: spinel
-          key: spinel-${{ matrix.target }}-${{ steps.spinel-rev.outputs.sha }}
+          key: spinel-${{ env.TARGET }}-${{ steps.spinel-rev.outputs.sha }}
 
       - name: Build spinel
         if: steps.spinel-cache.outputs.cache-hit != 'true'
@@ -77,7 +68,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: spinel
-          key: spinel-${{ matrix.target }}-${{ steps.spinel-rev.outputs.sha }}
+          key: spinel-${{ env.TARGET }}-${{ steps.spinel-rev.outputs.sha }}
 
       - run: echo "$GITHUB_WORKSPACE/spinel/bin" >> "$GITHUB_PATH"
 
@@ -97,17 +88,67 @@ jobs:
       # the executable bit, and these are shipped straight to users.
       - name: Package
         working-directory: pulpmesh
-        run: tar -czf "pulpmesh-${{ matrix.target }}.tar.gz" -C build/bin pulpmesh
+        run: tar -czf "pulpmesh-$TARGET.tar.gz" -C build/bin pulpmesh
 
       - uses: actions/upload-artifact@v4
         with:
-          name: pulpmesh-${{ matrix.target }}
-          path: pulpmesh/pulpmesh-${{ matrix.target }}.tar.gz
+          name: pulpmesh-${{ env.TARGET }}
+          path: pulpmesh/pulpmesh-${{ env.TARGET }}.tar.gz
           if-no-files-found: error
 
+  package:
+    # Ships the same binary as an image under the repo's Packages tab. A push to
+    # main moves :latest; a v* tag adds the version tags.
+    if: github.event_name == 'push'
+    needs: [checks, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: pulpmesh-*
+          merge-multiple: true
+
+      # The Dockerfile copies a prebuilt binary, so the context is just that
+      # binary next to it rather than the source tree.
+      - name: Assemble the build context
+        run: |
+          mkdir -p ctx
+          tar -xzf "dist/pulpmesh-$TARGET.tar.gz" -C ctx
+          cp .github/docker/Dockerfile ctx/
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: ctx
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
   release:
-    # Publishes only for a v* tag; every other run stops at the artifacts above.
-    if: startsWith(github.ref, 'refs/tags/v')
+    # A v* tag publishes a versioned release; a push to main refreshes the
+    # rolling "latest" prerelease. Pull requests stop at the artifact above.
+    if: github.event_name == 'push'
     needs: [checks, build]
     runs-on: ubuntu-latest
     permissions:
@@ -127,10 +168,21 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
-          TAG: ${{ github.ref_name }}
         run: |
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" dist/* --clobber
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            tag="$GITHUB_REF_NAME"
+            if gh release view "$tag" >/dev/null 2>&1; then
+              gh release upload "$tag" dist/* --clobber
+            else
+              gh release create "$tag" dist/* --verify-tag --generate-notes
+            fi
           else
-            gh release create "$TAG" dist/* --verify-tag --generate-notes
+            # The rolling tag has to follow main, so drop the previous release
+            # and its tag before recreating them at this commit.
+            gh release delete latest --yes --cleanup-tag || true
+            gh release create latest dist/* \
+              --prerelease \
+              --target "$GITHUB_SHA" \
+              --title "latest (main)" \
+              --notes "Built from ${GITHUB_SHA} by run ${GITHUB_RUN_ID}."
           fi
