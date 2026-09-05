@@ -27,7 +27,7 @@ Harness.build("site", Harness::FIXTURE) do |site, out|
   Harness.check("absolute og url",
                 page.include?("<meta property=\"og:url\" content=\"https://fixture.example/ordinal-prefixed.html\">"), true)
   Harness.check("absolute twitter url",
-                page.include?("<meta property=\"twitter:url\" content=\"https://fixture.example/ordinal-prefixed.html\">"), true)
+                page.include?("<meta name=\"twitter:url\" content=\"https://fixture.example/ordinal-prefixed.html\">"), true)
   Harness.check("tags rendered", page.include?("<span class=\"tag\">ruby</span>"), true)
 
   feed = File.read(File.join(out, "rss.xml"))

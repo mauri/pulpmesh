@@ -14,83 +14,80 @@ _buf = ::String.new; _buf << '<!doctype html>
         <title>'.freeze; _buf << ( h post.title ).to_s; _buf << '</title>
 
         <meta name="keywords" content="'.freeze; _buf << ( h config.keywords ).to_s; _buf << '">
-'.freeze; if config.favicon 
+'.freeze;         if config.favicon 
  _buf << '        <link rel="icon" type="image/png" sizes="16x16" href="'.freeze; _buf << ( h config.favicon ).to_s; _buf << '">
-'.freeze; end 
+'.freeze;         end 
  _buf << '
-<meta name="description" content="'.freeze; _buf << ( h post.description ).to_s; _buf << '">
+        <meta name="description" content="'.freeze; _buf << ( h post.description ).to_s; _buf << '">
 
-<meta property="og:type" content="article">
-<meta property="og:site_name" content="'.freeze; _buf << ( h config.title ).to_s; _buf << '">
-'.freeze; if url_for 
- _buf << '<meta property="og:url" content="'.freeze; _buf << ( h post_url(post) ).to_s; _buf << '">
-'.freeze; end 
- _buf << '<meta property="og:title" content="'.freeze; _buf << ( h post.title ).to_s; _buf << '">
-'.freeze; unless post.description.empty? 
- _buf << '<meta property="og:description" content="'.freeze; _buf << ( h post.description ).to_s; _buf << '">
-'.freeze; end 
- if config.card_image 
+        <meta property="og:type" content="article">
+        <meta property="og:site_name" content="'.freeze; _buf << ( h config.title ).to_s; _buf << '">
+'.freeze;         if url_for 
+ _buf << '        <meta property="og:url" content="'.freeze; _buf << ( h post_url(post) ).to_s; _buf << '">
+'.freeze;         end 
+ _buf << '        <meta property="og:title" content="'.freeze; _buf << ( h post.title ).to_s; _buf << '">
+'.freeze;         unless post.description.empty? 
+ _buf << '        <meta property="og:description" content="'.freeze; _buf << ( h post.description ).to_s; _buf << '">
+'.freeze;         end 
+         if config.card_image 
  _buf << '
-<meta property="og:image" content="'.freeze; _buf << ( h config.card_image ).to_s; _buf << '">
-<meta property="og:image:width" content="300">
-<meta property="og:image:height" content="300">
+        <meta property="og:image" content="'.freeze; _buf << ( h config.card_image ).to_s; _buf << '">
+        <meta property="og:image:width" content="300">
+        <meta property="og:image:height" content="300">
 
-<meta name="twitter:image" content="'.freeze; _buf << ( h config.card_image ).to_s; _buf << '">
-'.freeze; end 
+        <meta name="twitter:image" content="'.freeze; _buf << ( h config.card_image ).to_s; _buf << '">
+'.freeze;         end 
  _buf << '
-<meta property="twitter:card" content="summary">
-'.freeze; if url_for 
- _buf << '<meta property="twitter:url" content="'.freeze; _buf << ( h post_url(post) ).to_s; _buf << '">
-'.freeze; end 
- _buf << '<meta property="twitter:title" content="'.freeze; _buf << ( h post.title ).to_s; _buf << '">
-'.freeze; unless post.description.empty? 
- _buf << '<meta property="twitter:description" content="'.freeze; _buf << ( h post.description ).to_s; _buf << '">
-'.freeze; end 
+        <meta name="twitter:card" content="summary">
+'.freeze;         if url_for 
+ _buf << '        <meta name="twitter:url" content="'.freeze; _buf << ( h post_url(post) ).to_s; _buf << '">
+'.freeze;         end 
+ _buf << '        <meta name="twitter:title" content="'.freeze; _buf << ( h post.title ).to_s; _buf << '">
+'.freeze;         unless post.description.empty? 
+ _buf << '        <meta name="twitter:description" content="'.freeze; _buf << ( h post.description ).to_s; _buf << '">
+'.freeze;         end 
  _buf << '
-<link rel="stylesheet" href="smol.css">
-<link rel="stylesheet" href="syntax.css">
-'.freeze; if config.styles? 
- _buf << '<link rel="stylesheet" href="_styles.css">
-'.freeze; end 
- _buf << '
-    </head>
+        <link rel="stylesheet" href="smol.css">
+        <link rel="stylesheet" href="syntax.css">
+'.freeze;         if config.styles? 
+ _buf << '        <link rel="stylesheet" href="_styles.css">
+'.freeze;         end 
+ _buf << '    </head>
     <body id="post" class="'.freeze; _buf << ( h post.slug ).to_s; _buf << '">
-<header>
-    <h1 class="text-2xl font-bold">'.freeze; _buf << ( h post.title ).to_s; _buf << '</h1>
-    <p class="font-bold m-0">
-        <span id="publish-at">
-          <time datetime="'.freeze; _buf << ( iso post.date ).to_s; _buf << '">'.freeze; _buf << ( ymd post.date ).to_s; _buf << '</time>
-          <span>&middot;</span>
-        </span>
-        <a href="index.html">'.freeze; _buf << ( h config.title ).to_s; _buf << '</a>
-    </p>
+        <header>
+            <h1 class="text-2xl font-bold">'.freeze; _buf << ( h post.title ).to_s; _buf << '</h1>
+            <p class="font-bold m-0">
+                <span id="publish-at">
+                    <time datetime="'.freeze; _buf << ( iso post.date ).to_s; _buf << '">'.freeze; _buf << ( ymd post.date ).to_s; _buf << '</time>
+                    <span>&middot;</span>
+                </span>
+                <a href="index.html">'.freeze; _buf << ( h config.title ).to_s; _buf << '</a>
+            </p>
 
-    <hr>
-</header>
-<main>
-    <article class="md">
+            <hr>
+        </header>
+        <main>
+            <article class="md">
 '.freeze; _buf << ( post.html ).to_s; _buf << '
 '.freeze; _buf << '
-        <div class="tags mt-4">
-'.freeze; post.tags.each do |tag| 
- _buf << '          <span class="tag">'.freeze; _buf << ( h tag ).to_s; _buf << '</span>
-'.freeze; end 
- _buf << '        </div>
+                <div class="tags mt-4">
+'.freeze;                     post.tags.each do |tag| 
+ _buf << '                    <span class="tag">'.freeze; _buf << ( h tag ).to_s; _buf << '</span>
+'.freeze;                     end 
+ _buf << '                </div>
 
-        <div id="last-updated" class="text-sm">
-          last updated: <time datetime="'.freeze; _buf << ( iso post.updated_at ).to_s; _buf << '">'.freeze; _buf << ( ymd post.updated_at ).to_s; _buf << '</time>
-        </div>
+                <div id="last-updated" class="text-sm">
+                    last updated: <time datetime="'.freeze; _buf << ( iso post.updated_at ).to_s; _buf << '">'.freeze; _buf << ( ymd post.updated_at ).to_s; _buf << '</time>
+                </div>
 
-        <div id="post-footer"></div>
-    </article>
-</main>
-
-<footer>
-    <hr>
-    '.freeze; _buf << ( config.footer ).to_s; _buf << '
-'.freeze; _buf << '</footer>
-
-</body>
+                <div id="post-footer"></div>
+            </article>
+        </main>
+        <footer>
+            <hr>
+            '.freeze; _buf << ( config.footer ).to_s; _buf << '
+'.freeze; _buf << '        </footer>
+    </body>
 </html>
 '.freeze;
 _buf.to_s
@@ -106,83 +103,77 @@ _buf = ::String.new; _buf << '<!doctype html>
         <title>'.freeze; _buf << ( h config.title ).to_s; _buf << '</title>
 
         <meta name="keywords" content="'.freeze; _buf << ( h config.keywords ).to_s; _buf << '">
-'.freeze; if config.favicon 
+'.freeze;         if config.favicon 
  _buf << '        <link rel="icon" type="image/png" sizes="16x16" href="'.freeze; _buf << ( h config.favicon ).to_s; _buf << '">
-'.freeze; end 
+'.freeze;         end 
  _buf << '
-<meta name="description" content="'.freeze; _buf << ( h config.description ).to_s; _buf << '">
+        <meta name="description" content="'.freeze; _buf << ( h config.description ).to_s; _buf << '">
 
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="'.freeze; _buf << ( h config.title ).to_s; _buf << '">
-'.freeze; if url_for 
- _buf << '<meta property="og:url" content="'.freeze; _buf << ( h url_for ).to_s; _buf << '">
-'.freeze; end 
- _buf << '<meta property="og:title" content="'.freeze; _buf << ( h config.title ).to_s; _buf << '">
-<meta property="og:description" content="'.freeze; _buf << ( h config.description ).to_s; _buf << '">
-'.freeze; if config.card_image 
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="'.freeze; _buf << ( h config.title ).to_s; _buf << '">
+'.freeze;         if url_for 
+ _buf << '        <meta property="og:url" content="'.freeze; _buf << ( h url_for ).to_s; _buf << '">
+'.freeze;         end 
+ _buf << '        <meta property="og:title" content="'.freeze; _buf << ( h config.title ).to_s; _buf << '">
+        <meta property="og:description" content="'.freeze; _buf << ( h config.description ).to_s; _buf << '">
+'.freeze;         if config.card_image 
  _buf << '
-<meta property="og:image" content="'.freeze; _buf << ( h config.card_image ).to_s; _buf << '">
-<meta property="og:image:width" content="300">
-<meta property="og:image:height" content="300">
+        <meta property="og:image" content="'.freeze; _buf << ( h config.card_image ).to_s; _buf << '">
+        <meta property="og:image:width" content="300">
+        <meta property="og:image:height" content="300">
 
-<meta name="twitter:image" content="'.freeze; _buf << ( h config.card_image ).to_s; _buf << '">
-'.freeze; end 
+        <meta name="twitter:image" content="'.freeze; _buf << ( h config.card_image ).to_s; _buf << '">
+'.freeze;         end 
  _buf << '
-<meta property="twitter:card" content="summary">
-'.freeze; if url_for 
- _buf << '<meta property="twitter:url" content="'.freeze; _buf << ( h url_for ).to_s; _buf << '">
-'.freeze; end 
- _buf << '<meta property="twitter:title" content="'.freeze; _buf << ( h config.title ).to_s; _buf << '">
-<meta property="twitter:description" content="'.freeze; _buf << ( h config.description ).to_s; _buf << '">
-'.freeze; if url_for 
+        <meta name="twitter:card" content="summary">
+'.freeze;         if url_for 
+ _buf << '        <meta name="twitter:url" content="'.freeze; _buf << ( h url_for ).to_s; _buf << '">
+'.freeze;         end 
+ _buf << '        <meta name="twitter:title" content="'.freeze; _buf << ( h config.title ).to_s; _buf << '">
+        <meta name="twitter:description" content="'.freeze; _buf << ( h config.description ).to_s; _buf << '">
+'.freeze;         if url_for 
  _buf << '
-<link rel="alternate" href="rss.xml" type="application/rss+xml" title="RSS feed for '.freeze; _buf << ( h config.title ).to_s; _buf << '">
-'.freeze; end 
+        <link rel="alternate" href="rss.xml" type="application/rss+xml" title="RSS feed for '.freeze; _buf << ( h config.title ).to_s; _buf << '">
+'.freeze;         end 
  _buf << '
-<link rel="stylesheet" href="smol.css">
-<link rel="stylesheet" href="syntax.css">
-'.freeze; if config.styles? 
- _buf << '<link rel="stylesheet" href="_styles.css">
-'.freeze; end 
- _buf << '
-    </head>
+        <link rel="stylesheet" href="smol.css">
+        <link rel="stylesheet" href="syntax.css">
+'.freeze;         if config.styles? 
+ _buf << '        <link rel="stylesheet" href="_styles.css">
+'.freeze;         end 
+ _buf << '    </head>
     <body id="blog" class="layout-'.freeze; _buf << ( h config.layout ).to_s; _buf << '">
-
-<header class="text-center">
-    <h1 class="text-2xl font-bold mt-2">'.freeze; _buf << ( h config.title ).to_s; _buf << '</h1>
-    <span>'.freeze; _buf << ( h config.description ).to_s; _buf << '</span>
-'.freeze; if url_for 
- _buf << '    <nav>
-        <a href="rss.xml" class="text-lg transform-none">rss</a>
-    </nav>
-'.freeze; end 
- _buf << '    <hr>
-</header>
-<main>
-'.freeze; if config.intro_html 
- _buf << '
-    <div class="intro md">
+        <header class="text-center">
+            <h1 class="text-2xl font-bold mt-2">'.freeze; _buf << ( h config.title ).to_s; _buf << '</h1>
+            <span>'.freeze; _buf << ( h config.description ).to_s; _buf << '</span>
+'.freeze;             if url_for 
+ _buf << '            <nav>
+                <a href="rss.xml" class="text-lg transform-none">rss</a>
+            </nav>
+'.freeze;             end 
+ _buf << '            <hr>
+        </header>
+        <main>
+'.freeze;             if config.intro_html 
+ _buf << '            <div class="intro md">
 '.freeze; _buf << ( config.intro_html ).to_s; _buf << '
-'.freeze; _buf << '    </div>
-    <hr>
-'.freeze; end 
- _buf << '
-    <ul class="posts group mt-2">
-'.freeze; posts.each do |entry| 
- _buf << '        <li class="flex items-center">
-            <time datetime="'.freeze; _buf << ( iso entry.date ).to_s; _buf << '" class="text-sm post-date">'.freeze; _buf << ( ymd entry.date ).to_s; _buf << '</time>
-            <span class="text-md flex-1 m-0 transform-none"><a href="'.freeze; _buf << ( h entry.filename ).to_s; _buf << '">'.freeze; _buf << ( h entry.title ).to_s; _buf << '</a></span>
-        </li>
-'.freeze; end 
- _buf << '    </ul>
-</main>
-
-<footer>
-    <hr>
-    '.freeze; _buf << ( config.footer ).to_s; _buf << '
-'.freeze; _buf << '</footer>
-
-</body>
+'.freeze; _buf << '            </div>
+            <hr>
+'.freeze;             end 
+ _buf << '            <ul class="posts group mt-2">
+'.freeze;                 posts.each do |entry| 
+ _buf << '                <li class="flex items-center">
+                    <time datetime="'.freeze; _buf << ( iso entry.date ).to_s; _buf << '" class="text-sm post-date">'.freeze; _buf << ( ymd entry.date ).to_s; _buf << '</time>
+                    <span class="text-md flex-1 m-0 transform-none"><a href="'.freeze; _buf << ( h entry.filename ).to_s; _buf << '">'.freeze; _buf << ( h entry.title ).to_s; _buf << '</a></span>
+                </li>
+'.freeze;                 end 
+ _buf << '            </ul>
+        </main>
+        <footer>
+            <hr>
+            '.freeze; _buf << ( config.footer ).to_s; _buf << '
+'.freeze; _buf << '        </footer>
+    </body>
 </html>
 '.freeze;
 _buf.to_s
@@ -198,39 +189,36 @@ _buf = ::String.new; _buf << '<!doctype html>
         <title>404 &middot; '.freeze; _buf << ( h config.title ).to_s; _buf << '</title>
 
         <meta name="robots" content="noindex">
-'.freeze; if config.favicon 
+'.freeze;         if config.favicon 
  _buf << '        <link rel="icon" type="image/png" sizes="16x16" href="'.freeze; _buf << ( h config.favicon ).to_s; _buf << '">
-'.freeze; end 
+'.freeze;         end 
  _buf << '
-<link rel="stylesheet" href="smol.css">
-<link rel="stylesheet" href="syntax.css">
-'.freeze; if config.styles? 
- _buf << '<link rel="stylesheet" href="_styles.css">
-'.freeze; end 
- _buf << '
-    </head>
-    <body id="post" class="not-found">
-<header>
-    <h1 class="text-2xl font-bold">404</h1>
-    <p class="font-bold m-0">
-        <a href="index.html">'.freeze; _buf << ( h config.title ).to_s; _buf << '</a>
-    </p>
+        <link rel="stylesheet" href="smol.css">
+        <link rel="stylesheet" href="syntax.css">
+'.freeze;         if config.styles? 
+ _buf << '        <link rel="stylesheet" href="_styles.css">
+'.freeze;         end 
+ _buf << '    </head>
+    <body id="not-found" class="not-found">
+        <header>
+            <h1 class="text-2xl font-bold">404</h1>
+            <p class="font-bold m-0">
+                <a href="index.html">'.freeze; _buf << ( h config.title ).to_s; _buf << '</a>
+            </p>
 
-    <hr>
-</header>
-<main>
-    <div class="md">
-        <p>There is nothing at this address.</p>
-        <p><a href="index.html">Back to the index</a></p>
-    </div>
-</main>
-
-<footer>
-    <hr>
-    '.freeze; _buf << ( config.footer ).to_s; _buf << '
-'.freeze; _buf << '</footer>
-
-</body>
+            <hr>
+        </header>
+        <main>
+            <div class="md">
+                <p>There is nothing at this address.</p>
+                <p><a href="index.html">Back to the index</a></p>
+            </div>
+        </main>
+        <footer>
+            <hr>
+            '.freeze; _buf << ( config.footer ).to_s; _buf << '
+'.freeze; _buf << '        </footer>
+    </body>
 </html>
 '.freeze;
 _buf.to_s
@@ -246,18 +234,18 @@ _buf = ::String.new; _buf << '<?xml version="1.0" encoding="UTF-8"?>
     <description>'.freeze; _buf << ( h config.description ).to_s; _buf << '</description>
     <language>en</language>
     <atom:link href="'.freeze; _buf << ( h url_for("rss.xml") ).to_s; _buf << '" rel="self" type="application/rss+xml" />
-'.freeze; posts.each do |entry| 
+'.freeze;     posts.each do |entry| 
  _buf << '    <item>
       <title>'.freeze; _buf << ( h entry.title ).to_s; _buf << '</title>
       <link>'.freeze; _buf << ( h post_url(entry) ).to_s; _buf << '</link>
       <guid isPermaLink="true">'.freeze; _buf << ( h post_url(entry) ).to_s; _buf << '</guid>
       <pubDate>'.freeze; _buf << ( rfc822 entry.date ).to_s; _buf << '</pubDate>
-'.freeze; entry.tags.each do |tag| 
+'.freeze;       entry.tags.each do |tag| 
  _buf << '      <category>'.freeze; _buf << ( h tag ).to_s; _buf << '</category>
-'.freeze; end 
+'.freeze;       end 
  _buf << '      <description><![CDATA['.freeze; _buf << ( entry.html ).to_s; _buf << ']]></description>
     </item>
-'.freeze; end 
+'.freeze;     end 
  _buf << '  </channel>
 </rss>
 '.freeze;

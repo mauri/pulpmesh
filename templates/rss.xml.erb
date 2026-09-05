@@ -6,17 +6,17 @@
     <description><%= h config.description %></description>
     <language>en</language>
     <atom:link href="<%= h url_for("rss.xml") %>" rel="self" type="application/rss+xml" />
-<% posts.each do |entry| -%>
+    <% posts.each do |entry| -%>
     <item>
       <title><%= h entry.title %></title>
       <link><%= h post_url(entry) %></link>
       <guid isPermaLink="true"><%= h post_url(entry) %></guid>
       <pubDate><%= rfc822 entry.date %></pubDate>
-<% entry.tags.each do |tag| -%>
+      <% entry.tags.each do |tag| -%>
       <category><%= h tag %></category>
-<% end -%>
+      <% end -%>
       <description><![CDATA[<%= entry.html %>]]></description>
     </item>
-<% end -%>
+    <% end -%>
   </channel>
 </rss>
