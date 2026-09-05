@@ -1,19 +1,19 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <meta charset='utf-8'>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>404 &middot; <%= h config.title %></title>
 
-        <meta name="robots" content="noindex" />
+        <meta name="robots" content="noindex">
 <% if config.favicon -%>
         <link rel="icon" type="image/png" sizes="16x16" href="<%= h config.favicon %>">
 <% end -%>
 
-<link rel="stylesheet" href="smol.css" />
-<link rel="stylesheet" href="syntax.css" />
+<link rel="stylesheet" href="smol.css">
+<link rel="stylesheet" href="syntax.css">
 <% if config.styles? -%>
-<link rel="stylesheet" href="_styles.css" />
+<link rel="stylesheet" href="_styles.css">
 <% end -%>
 
     </head>
@@ -24,17 +24,17 @@
         <a href="index.html"><%= h config.title %></a>
     </p>
 
-    <hr />
+    <hr>
 </header>
 <main>
-    <article class="md">
+    <div class="md">
         <p>There is nothing at this address.</p>
         <p><a href="index.html">Back to the index</a></p>
-    </article>
+    </div>
 </main>
 
 <footer>
-    <hr />
+    <hr>
     <%= config.footer %>
 </footer>
 

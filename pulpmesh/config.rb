@@ -8,7 +8,7 @@ module Pulpmesh
     STYLESHEET = "_styles.css"
 
     DEFAULT_KEYWORDS = "blog, blogging, write, writing, hackers, developers, terminal"
-    DEFAULT_FOOTER = %(published with <a href="//prose.sh">prose.sh</a>)
+    DEFAULT_FOOTER = %(published with <a href="https://github.com/mauri/pulpmesh">pulpmesh</a>)
     DEFAULT_SYNTAX_THEME = "base16.monokai.dark"
 
     attr_reader :source, :data, :intro_html

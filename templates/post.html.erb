@@ -1,16 +1,16 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <meta charset='utf-8'>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title><%= h post.title %></title>
 
-        <meta name="keywords" content="<%= h config.keywords %>" />
+        <meta name="keywords" content="<%= h config.keywords %>">
 <% if config.favicon -%>
         <link rel="icon" type="image/png" sizes="16x16" href="<%= h config.favicon %>">
 <% end -%>
 
-<meta name="description" content="<%= h post.description %>" />
+<meta name="description" content="<%= h post.description %>">
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="<%= h config.title %>">
@@ -23,12 +23,11 @@
 <% end -%>
 <% if config.card_image -%>
 
-<meta property="og:image:width" content="300" />
-<meta property="og:image:height" content="300" />
-<meta itemprop="image" content="<%= h config.card_image %>" />
-<meta property="og:image" content="<%= h config.card_image %>" />
+<meta property="og:image" content="<%= h config.card_image %>">
+<meta property="og:image:width" content="300">
+<meta property="og:image:height" content="300">
 
-<meta name="twitter:image" content="<%= h config.card_image %>" />
+<meta name="twitter:image" content="<%= h config.card_image %>">
 <% end -%>
 
 <meta property="twitter:card" content="summary">
@@ -40,10 +39,10 @@
 <meta property="twitter:description" content="<%= h post.description %>">
 <% end -%>
 
-<link rel="stylesheet" href="smol.css" />
-<link rel="stylesheet" href="syntax.css" />
+<link rel="stylesheet" href="smol.css">
+<link rel="stylesheet" href="syntax.css">
 <% if config.styles? -%>
-<link rel="stylesheet" href="_styles.css" />
+<link rel="stylesheet" href="_styles.css">
 <% end -%>
 
     </head>
@@ -58,7 +57,7 @@
         <a href="index.html"><%= h config.title %></a>
     </p>
 
-    <hr />
+    <hr>
 </header>
 <main>
     <article class="md">
@@ -79,7 +78,7 @@
 </main>
 
 <footer>
-    <hr />
+    <hr>
     <%= config.footer %>
 </footer>
 

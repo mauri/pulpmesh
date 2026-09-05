@@ -9,16 +9,16 @@ module Pulpmesh
 _buf = ::String.new; _buf << '<!doctype html>
 <html lang="en">
     <head>
-        <meta charset=\'utf-8\'>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>'.freeze; _buf << ( h post.title ).to_s; _buf << '</title>
 
-        <meta name="keywords" content="'.freeze; _buf << ( h config.keywords ).to_s; _buf << '" />
+        <meta name="keywords" content="'.freeze; _buf << ( h config.keywords ).to_s; _buf << '">
 '.freeze; if config.favicon 
  _buf << '        <link rel="icon" type="image/png" sizes="16x16" href="'.freeze; _buf << ( h config.favicon ).to_s; _buf << '">
 '.freeze; end 
  _buf << '
-<meta name="description" content="'.freeze; _buf << ( h post.description ).to_s; _buf << '" />
+<meta name="description" content="'.freeze; _buf << ( h post.description ).to_s; _buf << '">
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="'.freeze; _buf << ( h config.title ).to_s; _buf << '">
@@ -31,12 +31,11 @@ _buf = ::String.new; _buf << '<!doctype html>
 '.freeze; end 
  if config.card_image 
  _buf << '
-<meta property="og:image:width" content="300" />
-<meta property="og:image:height" content="300" />
-<meta itemprop="image" content="'.freeze; _buf << ( h config.card_image ).to_s; _buf << '" />
-<meta property="og:image" content="'.freeze; _buf << ( h config.card_image ).to_s; _buf << '" />
+<meta property="og:image" content="'.freeze; _buf << ( h config.card_image ).to_s; _buf << '">
+<meta property="og:image:width" content="300">
+<meta property="og:image:height" content="300">
 
-<meta name="twitter:image" content="'.freeze; _buf << ( h config.card_image ).to_s; _buf << '" />
+<meta name="twitter:image" content="'.freeze; _buf << ( h config.card_image ).to_s; _buf << '">
 '.freeze; end 
  _buf << '
 <meta property="twitter:card" content="summary">
@@ -48,10 +47,10 @@ _buf = ::String.new; _buf << '<!doctype html>
  _buf << '<meta property="twitter:description" content="'.freeze; _buf << ( h post.description ).to_s; _buf << '">
 '.freeze; end 
  _buf << '
-<link rel="stylesheet" href="smol.css" />
-<link rel="stylesheet" href="syntax.css" />
+<link rel="stylesheet" href="smol.css">
+<link rel="stylesheet" href="syntax.css">
 '.freeze; if config.styles? 
- _buf << '<link rel="stylesheet" href="_styles.css" />
+ _buf << '<link rel="stylesheet" href="_styles.css">
 '.freeze; end 
  _buf << '
     </head>
@@ -66,7 +65,7 @@ _buf = ::String.new; _buf << '<!doctype html>
         <a href="index.html">'.freeze; _buf << ( h config.title ).to_s; _buf << '</a>
     </p>
 
-    <hr />
+    <hr>
 </header>
 <main>
     <article class="md">
@@ -87,7 +86,7 @@ _buf = ::String.new; _buf << '<!doctype html>
 </main>
 
 <footer>
-    <hr />
+    <hr>
     '.freeze; _buf << ( config.footer ).to_s; _buf << '
 '.freeze; _buf << '</footer>
 
@@ -102,16 +101,16 @@ _buf.to_s
 _buf = ::String.new; _buf << '<!doctype html>
 <html lang="en">
     <head>
-        <meta charset=\'utf-8\'>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>'.freeze; _buf << ( h config.title ).to_s; _buf << '</title>
 
-        <meta name="keywords" content="'.freeze; _buf << ( h config.keywords ).to_s; _buf << '" />
+        <meta name="keywords" content="'.freeze; _buf << ( h config.keywords ).to_s; _buf << '">
 '.freeze; if config.favicon 
  _buf << '        <link rel="icon" type="image/png" sizes="16x16" href="'.freeze; _buf << ( h config.favicon ).to_s; _buf << '">
 '.freeze; end 
  _buf << '
-<meta name="description" content="'.freeze; _buf << ( h config.description ).to_s; _buf << '" />
+<meta name="description" content="'.freeze; _buf << ( h config.description ).to_s; _buf << '">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="'.freeze; _buf << ( h config.title ).to_s; _buf << '">
@@ -122,12 +121,11 @@ _buf = ::String.new; _buf << '<!doctype html>
 <meta property="og:description" content="'.freeze; _buf << ( h config.description ).to_s; _buf << '">
 '.freeze; if config.card_image 
  _buf << '
-<meta property="og:image:width" content="300" />
-<meta property="og:image:height" content="300" />
-<meta itemprop="image" content="'.freeze; _buf << ( h config.card_image ).to_s; _buf << '" />
-<meta property="og:image" content="'.freeze; _buf << ( h config.card_image ).to_s; _buf << '" />
+<meta property="og:image" content="'.freeze; _buf << ( h config.card_image ).to_s; _buf << '">
+<meta property="og:image:width" content="300">
+<meta property="og:image:height" content="300">
 
-<meta name="twitter:image" content="'.freeze; _buf << ( h config.card_image ).to_s; _buf << '" />
+<meta name="twitter:image" content="'.freeze; _buf << ( h config.card_image ).to_s; _buf << '">
 '.freeze; end 
  _buf << '
 <meta property="twitter:card" content="summary">
@@ -138,13 +136,13 @@ _buf = ::String.new; _buf << '<!doctype html>
 <meta property="twitter:description" content="'.freeze; _buf << ( h config.description ).to_s; _buf << '">
 '.freeze; if url_for 
  _buf << '
-<link rel="alternate" href="rss.xml" type="application/rss+xml" title="RSS feed for '.freeze; _buf << ( h config.title ).to_s; _buf << '" />
+<link rel="alternate" href="rss.xml" type="application/rss+xml" title="RSS feed for '.freeze; _buf << ( h config.title ).to_s; _buf << '">
 '.freeze; end 
  _buf << '
-<link rel="stylesheet" href="smol.css" />
-<link rel="stylesheet" href="syntax.css" />
+<link rel="stylesheet" href="smol.css">
+<link rel="stylesheet" href="syntax.css">
 '.freeze; if config.styles? 
- _buf << '<link rel="stylesheet" href="_styles.css" />
+ _buf << '<link rel="stylesheet" href="_styles.css">
 '.freeze; end 
  _buf << '
     </head>
@@ -158,35 +156,29 @@ _buf = ::String.new; _buf << '<!doctype html>
         <a href="rss.xml" class="text-lg transform-none">rss</a>
     </nav>
 '.freeze; end 
- _buf << '    <hr />
+ _buf << '    <hr>
 </header>
 <main>
 '.freeze; if config.intro_html 
  _buf << '
-    <section>
-        <article class="md">
+    <div class="intro md">
 '.freeze; _buf << ( config.intro_html ).to_s; _buf << '
-'.freeze; _buf << '        </article>
-        <hr />
-    </section>
+'.freeze; _buf << '    </div>
+    <hr>
 '.freeze; end 
  _buf << '
-    <section class="posts group mt-2">
+    <ul class="posts group mt-2">
 '.freeze; posts.each do |entry| 
- _buf << '
-        <article>
-            <div class="flex items-center">
-                <time datetime="'.freeze; _buf << ( iso entry.date ).to_s; _buf << '" class="text-sm post-date">'.freeze; _buf << ( ymd entry.date ).to_s; _buf << '</time>
-                <span class="text-md flex-1 m-0 transform-none"><a href="'.freeze; _buf << ( h entry.filename ).to_s; _buf << '">'.freeze; _buf << ( h entry.title ).to_s; _buf << '</a></span>
-            </div>
-        </article>
+ _buf << '        <li class="flex items-center">
+            <time datetime="'.freeze; _buf << ( iso entry.date ).to_s; _buf << '" class="text-sm post-date">'.freeze; _buf << ( ymd entry.date ).to_s; _buf << '</time>
+            <span class="text-md flex-1 m-0 transform-none"><a href="'.freeze; _buf << ( h entry.filename ).to_s; _buf << '">'.freeze; _buf << ( h entry.title ).to_s; _buf << '</a></span>
+        </li>
 '.freeze; end 
- _buf << '
-    </section>
+ _buf << '    </ul>
 </main>
 
 <footer>
-    <hr />
+    <hr>
     '.freeze; _buf << ( config.footer ).to_s; _buf << '
 '.freeze; _buf << '</footer>
 
@@ -201,19 +193,19 @@ _buf.to_s
 _buf = ::String.new; _buf << '<!doctype html>
 <html lang="en">
     <head>
-        <meta charset=\'utf-8\'>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>404 &middot; '.freeze; _buf << ( h config.title ).to_s; _buf << '</title>
 
-        <meta name="robots" content="noindex" />
+        <meta name="robots" content="noindex">
 '.freeze; if config.favicon 
  _buf << '        <link rel="icon" type="image/png" sizes="16x16" href="'.freeze; _buf << ( h config.favicon ).to_s; _buf << '">
 '.freeze; end 
  _buf << '
-<link rel="stylesheet" href="smol.css" />
-<link rel="stylesheet" href="syntax.css" />
+<link rel="stylesheet" href="smol.css">
+<link rel="stylesheet" href="syntax.css">
 '.freeze; if config.styles? 
- _buf << '<link rel="stylesheet" href="_styles.css" />
+ _buf << '<link rel="stylesheet" href="_styles.css">
 '.freeze; end 
  _buf << '
     </head>
@@ -224,17 +216,17 @@ _buf = ::String.new; _buf << '<!doctype html>
         <a href="index.html">'.freeze; _buf << ( h config.title ).to_s; _buf << '</a>
     </p>
 
-    <hr />
+    <hr>
 </header>
 <main>
-    <article class="md">
+    <div class="md">
         <p>There is nothing at this address.</p>
         <p><a href="index.html">Back to the index</a></p>
-    </article>
+    </div>
 </main>
 
 <footer>
-    <hr />
+    <hr>
     '.freeze; _buf << ( config.footer ).to_s; _buf << '
 '.freeze; _buf << '</footer>
 
