@@ -5,25 +5,31 @@
    site's own _styles.css is linked after this file and overrides it.
    =========================================================================== */
 
+/* The pulpme.sh palette: warm paper in light, near black in dark, both
+   linking in the brand green. */
 :root {
-  --bg: #fff;
-  --fg: #1b1b1b;
-  --dim: #666;
-  --link: #005cc5;
-  --rule: #ddd;
-  --pre: #f5f5f5;
-  --code: #eee;
+  --bg: #fbfaf7;
+  --fg: #1c1b19;
+  --dim: #6d6a63;
+  --accent: #0d8250;
+  --link: var(--accent);
+  --rule: #e0ddd4;
+  --pre: #f3f0e9;
+  --code: #ebe8de;
+  /* The wordmark is drawn in neon, which is loud on a pale background. */
+  --logo-adjust: brightness(0.86) saturate(1.15);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #16161a;
-    --fg: #dcdcdc;
-    --dim: #999;
-    --link: #79b8ff;
-    --rule: #333;
-    --pre: #1c1c20;
-    --code: #26262b;
+    --bg: #0d0d0f;
+    --fg: #e8e6e1;
+    --dim: #8b8880;
+    --accent: #35d68a;
+    --rule: #24242a;
+    --pre: #16161a;
+    --code: #1f1f26;
+    --logo-adjust: none;
   }
 }
 
@@ -49,6 +55,11 @@ body {
 a,
 a:visited {
   color: var(--link);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--bg);
 }
 
 h1,
@@ -129,6 +140,16 @@ header nav a {
 footer {
   color: var(--dim);
   margin-top: 2rem;
+}
+
+/* The wordmark in the default footer line. The svg has room above and below
+   the letters, so it is set taller than the text and dropped below the
+   baseline to sit on it. */
+.footer-logo {
+  height: 1.6em;
+  width: auto;
+  vertical-align: -0.45em;
+  filter: var(--logo-adjust);
 }
 
 /* ---- post list --------------------------------------------------------- */

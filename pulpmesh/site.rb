@@ -57,12 +57,14 @@ module Pulpmesh
       File.write(File.join(output, name), contents)
     end
 
-    # The stylesheets are compiled-in constants rather than files on disk, and
-    # syntax.css is a snapshot of one Rouge theme, so a source folder asking for
-    # a different theme gets the snapshot plus a warning.
+    # The stylesheets and the svgs are compiled-in constants rather than files
+    # on disk, and syntax.css is a snapshot of one Rouge theme, so a source
+    # folder asking for a different theme gets the snapshot plus a warning.
     def write_assets
       write("smol.css", Assets::SMOL)
       write("syntax.css", Assets::SYNTAX)
+      write("pulpmesh-logo.svg", Assets::PULPMESH_LOGO)
+      write("favicon.svg", Assets::FAVICON) unless config.favicon
       unless config.syntax_theme == Config::DEFAULT_SYNTAX_THEME
         warnings << "syntax_theme #{config.syntax_theme} is not available: using #{Config::DEFAULT_SYNTAX_THEME}"
       end

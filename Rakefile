@@ -8,7 +8,7 @@ task :templates do
   puts "wrote pulpmesh/templates.rb"
 end
 
-desc "regenerate pulpmesh/assets.rb from assets/*.css"
+desc "regenerate pulpmesh/assets.rb from assets/*.css and assets/*.svg"
 task :assets do
   File.write(File.join(ROOT, "pulpmesh", "assets.rb"), generated_assets)
   puts "wrote pulpmesh/assets.rb"

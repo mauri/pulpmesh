@@ -35,7 +35,7 @@ pulpmesh serve [SOURCE] [options]   build, then serve it on localhost
 rewritten on every build; nothing is ever written into `SOURCE` itself.
 
 Each build produces one `.html` per post, plus `index.html`, `404.html`,
-`rss.xml`, `smol.css` and `syntax.css`.
+`rss.xml`, `smol.css`, `syntax.css`, `pulpmesh-logo.svg` and `favicon.svg`.
 
 ## How a folder is read
 
@@ -86,10 +86,10 @@ builds.
 | `keywords` | meta keywords |
 | `layout` | sets `class="layout-…"` on the index body |
 | `with_styles` | set `false` to ignore `_styles.css` |
-| `favicon` | path to a favicon, omitted when unset |
+| `favicon` | path to a favicon, replacing the bundled `favicon.svg` |
 | `card_image` | absolute url for the og:image / twitter:image card |
 | `syntax_theme` | any Rouge theme name (default `base16.monokai.dark`) |
-| `footer` | html for the footer line |
+| `footer` | html for the footer line, replacing the bundled wordmark |
 
 ## Styling
 
@@ -99,6 +99,11 @@ Pages link three stylesheets, in order:
 2. `syntax.css` — generated at build time from the configured syntax theme.
 3. `_styles.css` — copied from the source folder, if present. This is where a
    site's own theme goes; it is loaded last and wins.
+
+The default colours are the pulpme.sh palette: warm paper in light, near
+black in dark, links in the brand green. The pixel wordmark ships as
+`pulpmesh-logo.svg` and is what the default footer line ends with;
+`favicon.svg` is the same mark cut down to `pm`.
 
 Markdown is rendered with GitHub-flavored syntax, straight (not typographic)
 quotes, and `rel="nofollow"` on outbound links.
@@ -132,14 +137,14 @@ Each is reimplemented here instead:
 ```sh
 rake generate   # regenerate templates.rb, assets.rb and entities.rb
 spin build
-spin test       # six snapshot programs, 142 checks
+spin test       # seven snapshot programs, 148 checks
 rake check      # fail if the committed codegen artifacts are stale
 rake parity     # re-run every test under CRuby against the same snapshots
 ```
 
 `pulpmesh/templates.rb`, `pulpmesh/assets.rb` and `pulpmesh/entities.rb` are
 **generated and committed** — `spin.toml` has no pre-build hook. Never
-hand-edit them; edit `templates/*.erb` or `assets/*.css` and run
+hand-edit them; edit `templates/*.erb` or the files in `assets/` and run
 `rake generate`. Erubi and kramdown are dev-machine tools for that task only —
 kramdown supplies the entity table as data — and neither is a dependency of
 the binary.

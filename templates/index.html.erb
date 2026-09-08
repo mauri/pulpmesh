@@ -7,7 +7,9 @@
 
         <meta name="keywords" content="<%= h config.keywords %>">
         <% if config.favicon -%>
-        <link rel="icon" type="image/png" sizes="16x16" href="<%= h config.favicon %>">
+        <link rel="icon" href="<%= h config.favicon %>">
+        <% else -%>
+        <link rel="icon" type="image/svg+xml" href="favicon.svg">
         <% end -%>
 
         <meta name="description" content="<%= h config.description %>">

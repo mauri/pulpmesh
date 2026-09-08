@@ -15,7 +15,9 @@ _buf = ::String.new; _buf << '<!doctype html>
 
         <meta name="keywords" content="'.freeze; _buf << ( h config.keywords ).to_s; _buf << '">
 '.freeze;         if config.favicon 
- _buf << '        <link rel="icon" type="image/png" sizes="16x16" href="'.freeze; _buf << ( h config.favicon ).to_s; _buf << '">
+ _buf << '        <link rel="icon" href="'.freeze; _buf << ( h config.favicon ).to_s; _buf << '">
+'.freeze;         else 
+ _buf << '        <link rel="icon" type="image/svg+xml" href="favicon.svg">
 '.freeze;         end 
  _buf << '
         <meta name="description" content="'.freeze; _buf << ( h post.description ).to_s; _buf << '">
@@ -104,7 +106,9 @@ _buf = ::String.new; _buf << '<!doctype html>
 
         <meta name="keywords" content="'.freeze; _buf << ( h config.keywords ).to_s; _buf << '">
 '.freeze;         if config.favicon 
- _buf << '        <link rel="icon" type="image/png" sizes="16x16" href="'.freeze; _buf << ( h config.favicon ).to_s; _buf << '">
+ _buf << '        <link rel="icon" href="'.freeze; _buf << ( h config.favicon ).to_s; _buf << '">
+'.freeze;         else 
+ _buf << '        <link rel="icon" type="image/svg+xml" href="favicon.svg">
 '.freeze;         end 
  _buf << '
         <meta name="description" content="'.freeze; _buf << ( h config.description ).to_s; _buf << '">
@@ -190,7 +194,9 @@ _buf = ::String.new; _buf << '<!doctype html>
 
         <meta name="robots" content="noindex">
 '.freeze;         if config.favicon 
- _buf << '        <link rel="icon" type="image/png" sizes="16x16" href="'.freeze; _buf << ( h config.favicon ).to_s; _buf << '">
+ _buf << '        <link rel="icon" href="'.freeze; _buf << ( h config.favicon ).to_s; _buf << '">
+'.freeze;         else 
+ _buf << '        <link rel="icon" type="image/svg+xml" href="favicon.svg">
 '.freeze;         end 
  _buf << '
         <link rel="stylesheet" href="smol.css">

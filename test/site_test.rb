@@ -4,8 +4,9 @@ require_relative "support/harness"
 
 Harness.build("site", Harness::FIXTURE) do |site, out|
   Harness.check("one page per post plus the extras", Harness.children(out),
-                %w[404.html date-prefixed.html index.html ordinal-prefixed.html
-                   rss.xml smol.css syntax.css with-code.html])
+                %w[404.html date-prefixed.html favicon.svg index.html
+                   ordinal-prefixed.html pulpmesh-logo.svg rss.xml smol.css
+                   syntax.css with-code.html])
   Harness.check("drafts are not published", Harness.children(out).include?("hidden-draft.html"), false)
   Harness.check("readme is not a post", site.posts.map { |p| p.slug }.include?("readme"), false)
   Harness.check("posts ordered newest first", site.posts.map { |p| p.slug },
@@ -18,6 +19,10 @@ Harness.build("site", Harness::FIXTURE) do |site, out|
   Harness.check("index renders the readme intro",
                 index.include?("Intro paragraph for the fixture blog."), true)
   Harness.check("site stylesheet not linked when absent", index.include?("href=\"_styles.css\""), false)
+  Harness.check("default favicon linked",
+                index.include?("<link rel=\"icon\" type=\"image/svg+xml\" href=\"favicon.svg\">"), true)
+  Harness.check("footer carries the wordmark",
+                index.include?("<img src=\"pulpmesh-logo.svg\" alt=\"pulpmesh\" class=\"footer-logo\">"), true)
 
   page = File.read(File.join(out, "ordinal-prefixed.html"))
   article = page[/<article class="md">(.*?)<\/article>/m, 1]
@@ -66,6 +71,18 @@ Harness.scratch("styled-src") do |source|
     Harness.check("stylesheet copied", File.read(File.join(out, "_styles.css")), "body { color: red }")
     Harness.check("stylesheet linked",
                   File.read(File.join(out, "index.html")).include?("href=\"_styles.css\""), true)
+  end
+end
+
+# A configured favicon replaces the bundled one, which is then not written.
+Harness.scratch("favicon-src") do |source|
+  File.write(File.join(source, "_readme.md"), "---\nfavicon: /icon.png\n---\n")
+  File.write(File.join(source, "post.md"), "# P\n\nbody\n")
+
+  Harness.build("favicon", source) do |_site, out|
+    Harness.check("bundled favicon not written", Harness.children(out).include?("favicon.svg"), false)
+    Harness.check("configured favicon linked",
+                  File.read(File.join(out, "index.html")).include?("<link rel=\"icon\" href=\"/icon.png\">"), true)
   end
 end
 
