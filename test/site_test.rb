@@ -4,9 +4,9 @@ require_relative "support/harness"
 
 Harness.build("site", Harness::FIXTURE) do |site, out|
   Harness.check("one page per post plus the extras", Harness.children(out),
-                %w[404.html date-prefixed.html favicon.svg index.html
-                   ordinal-prefixed.html pulpmesh-logo.svg rss.xml smol.css
-                   syntax.css with-code.html])
+                %w[404.html blog.css date-prefixed.html favicon.svg index.html
+                   ordinal-prefixed.html pulpmesh-logo.svg rss.xml syntax.css
+                   with-code.html])
   Harness.check("drafts are not published", Harness.children(out).include?("hidden-draft.html"), false)
   Harness.check("readme is not a post", site.posts.map { |p| p.slug }.include?("readme"), false)
   Harness.check("posts ordered newest first", site.posts.map { |p| p.slug },

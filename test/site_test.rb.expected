@@ -1,4 +1,4 @@
-ok  one page per post plus the extras => ["404.html", "date-prefixed.html", "favicon.svg", "index.html", "ordinal-prefixed.html", "pulpmesh-logo.svg", "rss.xml", "smol.css", "syntax.css", "with-code.html"]
+ok  one page per post plus the extras => ["404.html", "blog.css", "date-prefixed.html", "favicon.svg", "index.html", "ordinal-prefixed.html", "pulpmesh-logo.svg", "rss.xml", "syntax.css", "with-code.html"]
 ok  drafts are not published => false
 ok  readme is not a post => false
 ok  posts ordered newest first => ["date-prefixed", "ordinal-prefixed", "with-code"]

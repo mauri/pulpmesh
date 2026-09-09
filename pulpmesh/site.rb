@@ -61,7 +61,7 @@ module Pulpmesh
     # on disk, and syntax.css is a snapshot of one Rouge theme, so a source
     # folder asking for a different theme gets the snapshot plus a warning.
     def write_assets
-      write("smol.css", Assets::SMOL)
+      write("blog.css", Assets::BLOG)
       write("syntax.css", Assets::SYNTAX)
       write("pulpmesh-logo.svg", Assets::PULPMESH_LOGO)
       write("favicon.svg", Assets::FAVICON) unless config.favicon

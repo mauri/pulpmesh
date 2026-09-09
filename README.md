@@ -35,7 +35,7 @@ pulpmesh serve [SOURCE] [options]   build, then serve it on localhost
 rewritten on every build; nothing is ever written into `SOURCE` itself.
 
 Each build produces one `.html` per post, plus `index.html`, `404.html`,
-`rss.xml`, `smol.css`, `syntax.css`, `pulpmesh-logo.svg` and `favicon.svg`.
+`rss.xml`, `blog.css`, `syntax.css`, `pulpmesh-logo.svg` and `favicon.svg`.
 
 ## How a folder is read
 
@@ -95,7 +95,7 @@ builds.
 
 Pages link three stylesheets, in order:
 
-1. `smol.css` — bundled base styles and the utility classes the templates use.
+1. `blog.css` — bundled base styles and the utility classes the templates use.
 2. `syntax.css` — generated at build time from the configured syntax theme.
 3. `_styles.css` — copied from the source folder, if present. This is where a
    site's own theme goes; it is loaded last and wins.

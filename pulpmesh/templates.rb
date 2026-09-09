@@ -49,7 +49,7 @@ _buf = ::String.new; _buf << '<!doctype html>
  _buf << '        <meta name="twitter:description" content="'.freeze; _buf << ( h post.description ).to_s; _buf << '">
 '.freeze;         end 
  _buf << '
-        <link rel="stylesheet" href="smol.css">
+        <link rel="stylesheet" href="blog.css">
         <link rel="stylesheet" href="syntax.css">
 '.freeze;         if config.styles? 
  _buf << '        <link rel="stylesheet" href="_styles.css">
@@ -140,7 +140,7 @@ _buf = ::String.new; _buf << '<!doctype html>
         <link rel="alternate" href="rss.xml" type="application/rss+xml" title="RSS feed for '.freeze; _buf << ( h config.title ).to_s; _buf << '">
 '.freeze;         end 
  _buf << '
-        <link rel="stylesheet" href="smol.css">
+        <link rel="stylesheet" href="blog.css">
         <link rel="stylesheet" href="syntax.css">
 '.freeze;         if config.styles? 
  _buf << '        <link rel="stylesheet" href="_styles.css">
@@ -199,7 +199,7 @@ _buf = ::String.new; _buf << '<!doctype html>
  _buf << '        <link rel="icon" type="image/svg+xml" href="favicon.svg">
 '.freeze;         end 
  _buf << '
-        <link rel="stylesheet" href="smol.css">
+        <link rel="stylesheet" href="blog.css">
         <link rel="stylesheet" href="syntax.css">
 '.freeze;         if config.styles? 
  _buf << '        <link rel="stylesheet" href="_styles.css">
