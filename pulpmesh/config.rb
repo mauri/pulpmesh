@@ -8,7 +8,7 @@ module Pulpmesh
     STYLESHEET = "_styles.css"
 
     DEFAULT_KEYWORDS = "blog, blogging, write, writing, hackers, developers, terminal"
-    DEFAULT_FOOTER = %(published with <a href="https://github.com/mauri/pulpmesh">) +
+    DEFAULT_FOOTER = %(Published with <a href="https://pulpme.sh">) +
                      %(<img src="pulpmesh-logo.svg" alt="pulpmesh" class="footer-logo"></a>)
     DEFAULT_SYNTAX_THEME = "base16.monokai.dark"
 
