@@ -128,18 +128,16 @@ pre code {
   background: var(--pre) !important;
 }
 
-/* ---- masthead ---------------------------------------------------------- */
-header nav {
-  margin-top: 0.25rem;
-}
-
-header nav a {
-  margin: 0 0.35rem;
-}
-
+/* ---- footer ------------------------------------------------------------ */
 footer {
   color: var(--dim);
   margin-top: 2rem;
+}
+
+/* The feed link trails the footer as a quiet last line. */
+nav.feed {
+  color: var(--dim);
+  margin-top: 1rem;
 }
 
 /* The wordmark in the default footer line. The svg has room above and below

@@ -51,11 +51,6 @@
         <header class="text-center">
             <h1 class="text-2xl font-bold mt-2"><%= h config.title %></h1>
             <span><%= h config.description %></span>
-            <% if url_for -%>
-            <nav>
-                <a href="rss.xml" class="text-lg transform-none">rss</a>
-            </nav>
-            <% end -%>
             <hr>
         </header>
         <main>
@@ -78,5 +73,10 @@
             <hr>
             <%= config.footer %>
         </footer>
+        <% if url_for -%>
+        <nav class="feed">
+            <a href="rss.xml" class="text-sm">rss</a>
+        </nav>
+        <% end -%>
     </body>
 </html>

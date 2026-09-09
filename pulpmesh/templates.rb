@@ -150,12 +150,7 @@ _buf = ::String.new; _buf << '<!doctype html>
         <header class="text-center">
             <h1 class="text-2xl font-bold mt-2">'.freeze; _buf << ( h config.title ).to_s; _buf << '</h1>
             <span>'.freeze; _buf << ( h config.description ).to_s; _buf << '</span>
-'.freeze;             if url_for 
- _buf << '            <nav>
-                <a href="rss.xml" class="text-lg transform-none">rss</a>
-            </nav>
-'.freeze;             end 
- _buf << '            <hr>
+            <hr>
         </header>
         <main>
 '.freeze;             if config.intro_html 
@@ -177,7 +172,12 @@ _buf = ::String.new; _buf << '<!doctype html>
             <hr>
             '.freeze; _buf << ( config.footer ).to_s; _buf << '
 '.freeze; _buf << '        </footer>
-    </body>
+'.freeze;         if url_for 
+ _buf << '        <nav class="feed">
+            <a href="rss.xml" class="text-sm">rss</a>
+        </nav>
+'.freeze;         end 
+ _buf << '    </body>
 </html>
 '.freeze;
 _buf.to_s
