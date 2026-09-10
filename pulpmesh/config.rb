@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 module Pulpmesh
-  # Blog-wide metadata, read from `_readme.md` in the source folder. Its body
+  # Blog-wide metadata, read from `_pulpmesh.md` in the source folder. Its body
   # becomes the intro section on the index page.
   class Config
-    CONFIG_FILE = "_readme.md"
+    CONFIG_FILE = "_pulpmesh.md"
     STYLESHEET = "_styles.css"
 
     DEFAULT_KEYWORDS = "blog, blogging, write, writing, hackers, developers, terminal"

@@ -8,7 +8,7 @@ Harness.build("site", Harness::FIXTURE) do |site, out|
                    ordinal-prefixed.html pulpmesh-logo.svg rss.xml syntax.css
                    with-code.html])
   Harness.check("drafts are not published", Harness.children(out).include?("hidden-draft.html"), false)
-  Harness.check("readme is not a post", site.posts.map { |p| p.slug }.include?("readme"), false)
+  Harness.check("pulpmesh config is not a post", site.posts.map { |p| p.slug }.include?("pulpmesh"), false)
   Harness.check("posts ordered newest first", site.posts.map { |p| p.slug },
                 %w[date-prefixed ordinal-prefixed with-code])
 
@@ -16,7 +16,7 @@ Harness.build("site", Harness::FIXTURE) do |site, out|
   Harness.check("draft body absent from index", index.include?("A draft nobody should see"), false)
   Harness.check("index links every post",
                 site.posts.all? { |p| index.include?("href=\"#{p.filename}\"") }, true)
-  Harness.check("index renders the readme intro",
+  Harness.check("index renders the pulpmesh intro",
                 index.include?("Intro paragraph for the fixture blog."), true)
   Harness.check("site stylesheet not linked when absent", index.include?("href=\"_styles.css\""), false)
   Harness.check("default favicon linked",
@@ -49,12 +49,12 @@ Harness.build("override", Harness::FIXTURE, base_url: "https://override.example"
                 File.read(File.join(out, "rss.xml")).include?("https://override.example/with-code.html"), true)
 end
 
-# A folder with no _readme.md and no base_url.
+# A folder with no _pulpmesh.md and no base_url.
 Harness.scratch("solo-src") do |source|
   File.write(File.join(source, "solo.md"), "# Solo\n\nJust one post.\n")
 
   Harness.build("solo", source) do |site, out|
-    Harness.check("builds without a readme", Harness.children(out).include?("solo.html"), true)
+    Harness.check("builds without a pulpmesh config", Harness.children(out).include?("solo.html"), true)
     Harness.check("title falls back to the folder name", site.config.title, File.basename(source))
     Harness.check("no feed without base_url", Harness.children(out).include?("rss.xml"), false)
     Harness.check("no og:url without base_url", File.read(File.join(out, "solo.html")).include?("og:url"), false)
@@ -76,7 +76,7 @@ end
 
 # A configured favicon replaces the bundled one, which is then not written.
 Harness.scratch("favicon-src") do |source|
-  File.write(File.join(source, "_readme.md"), "---\nfavicon: /icon.png\n---\n")
+  File.write(File.join(source, "_pulpmesh.md"), "---\nfavicon: /icon.png\n---\n")
   File.write(File.join(source, "post.md"), "# P\n\nbody\n")
 
   Harness.build("favicon", source) do |_site, out|

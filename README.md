@@ -25,7 +25,7 @@ pulpmesh build [SOURCE] [options]   render SOURCE into html
 pulpmesh serve [SOURCE] [options]   build, then serve it on localhost
 
 --out=DIR        output directory (default: SOURCE/_site)
---base-url=URL   absolute site url, overriding base_url in _readme.md
+--base-url=URL   absolute site url, overriding base_url in _pulpmesh.md
 --port=N         port for `serve` (default: 4000)
 -v, --version
 -h, --help
@@ -46,7 +46,7 @@ Each build produces one `.html` per post, plus `index.html`, `404.html`,
 `frontier-model.html`. Two files that would publish to the same page abort the
 build.
 
-**Files starting with `_` are drafts** and are not rendered. `_readme.md` and
+**Files starting with `_` are drafts** and are not rendered. `_pulpmesh.md` and
 `_styles.css` are configuration, not posts.
 
 **The first `# Heading` is the title.** It is rendered in the page header and
@@ -72,10 +72,10 @@ tags: [ruby, static-site]
 Body text.
 ```
 
-### Blog configuration — `_readme.md`
+### Blog configuration — `_pulpmesh.md`
 
 Its front matter configures the blog; its body becomes the intro section on
-the index page. Every key is optional — a folder with no `_readme.md` still
+the index page. Every key is optional — a folder with no `_pulpmesh.md` still
 builds.
 
 | key | meaning |

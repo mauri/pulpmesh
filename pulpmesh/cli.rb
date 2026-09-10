@@ -13,7 +13,7 @@ module Pulpmesh
 
       options:
             --out=DIR      output directory (default: SOURCE/_site)
-            --base-url=URL absolute site url, overriding base_url in _readme.md
+            --base-url=URL absolute site url, overriding base_url in _pulpmesh.md
             --port=N       port for `serve` (default: 4000)
         -v, --version      print the version
         -h, --help         print this message
