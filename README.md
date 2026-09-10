@@ -148,3 +148,7 @@ hand-edit them; edit `templates/*.erb` or the files in `assets/` and run
 `rake generate`. Erubi and kramdown are dev-machine tools for that task only —
 kramdown supplies the entity table as data — and neither is a dependency of
 the binary.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
