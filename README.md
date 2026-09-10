@@ -116,6 +116,11 @@ begin a real tag stays literal. Html entities are decoded from a bundled
 entity table. The one deliberate exception is `&#0;`, left literal because
 spinel's strings are NUL-terminated at the C boundary.
 
+Post bodies, `_pulpmesh.md`'s `footer` and its body (`intro_html`) are all
+rendered as raw, unescaped html by design — pulpmesh assumes the markdown
+source is written by a trusted author, not submitted by end users. Do not
+point it at untrusted or third-party markdown.
+
 ## What's inside
 
 Ahead-of-time compilation rules out the usual Ruby static-site dependencies —

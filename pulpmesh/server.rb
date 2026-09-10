@@ -3,7 +3,9 @@
 require "socket"
 
 module Pulpmesh
-  # Static preview server for a built site.
+  # Static preview server for a built site, used by `pulpmesh serve`. Binds to
+  # 127.0.0.1 by default and is meant for local preview only, not for exposure
+  # to untrusted networks.
   #
   # Ctrl-C stops the process through the default signal action: spinel compiles
   # `trap` to a no-op, so there is no handler to run a graceful shutdown.
