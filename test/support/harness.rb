@@ -59,10 +59,32 @@ module Harness
     time.utc.strftime("%Y-%m-%d")
   end
 
-  # A throwaway directory. There is no tmpdir stdlib here, and the path has to
-  # be stable so the snapshot does not change between runs.
+  # One scratch root per run, under which every throwaway directory is created.
+  # There is no tmpdir stdlib here, and the usual atomic claim is unavailable:
+  # spinel's Dir.mkdir neither honours a mode nor raises on a directory that
+  # already exists. So the name is one nobody else could have guessed, and a
+  # path that somehow exists already is skipped rather than reused — otherwise
+  # a fixed /tmp name would let any local user pre-create it as a symlink and
+  # aim the suite's cleanup at whatever they liked.
+  ROOT = begin
+    chosen = nil
+    10.times do
+      candidate = "/tmp/pulpmesh-test-#{Process.pid}-#{rand(1 << 32)}"
+      next if File.symlink?(candidate) || File.exist?(candidate)
+
+      Dir.mkdir(candidate)
+      chosen = candidate
+      break
+    end
+    raise "could not create a scratch directory under /tmp" unless chosen
+
+    chosen
+  end
+
+  # A throwaway directory under ROOT. The name is stable within a run, since a
+  # test may report the folder it built from and that reaches the snapshot.
   def self.scratch(name)
-    path = "/tmp/pulpmesh-test-#{name}"
+    path = File.join(ROOT, name)
     Pulpmesh::FSUtil.rm_rf(path)
     Pulpmesh::FSUtil.mkdir_p(path)
     yield path
@@ -95,6 +117,7 @@ module Harness
 end
 
 at_exit do
+  Pulpmesh::FSUtil.rm_rf(Harness::ROOT)
   count = Harness.failures
   # Printed to stderr so it stays out of the snapshot comparison.
   if count.positive?

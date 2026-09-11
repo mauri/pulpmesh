@@ -92,7 +92,7 @@ Harness.scratch("collision-src") do |source|
   File.write(File.join(source, "0002-clash.md"), "# Two\n")
 
   message = begin
-    Pulpmesh::Site.new(source: source, output: "/tmp/pulpmesh-test-unused")
+    Pulpmesh::Site.new(source: source, output: File.join(Harness::ROOT, "unused"))
     "no error raised"
   rescue Pulpmesh::Error => e
     e.message
@@ -151,7 +151,7 @@ end
 
 # A directory that does not exist is refused.
 missing = begin
-  Pulpmesh::Site.new(source: "/tmp/pulpmesh-test-does-not-exist")
+  Pulpmesh::Site.new(source: File.join(Harness::ROOT, "does-not-exist"))
   "no error raised"
 rescue Pulpmesh::Error => e
   e.message.split(":").first
