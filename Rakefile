@@ -30,5 +30,10 @@ task :parity do
   ruby "-e", "require_relative 'tools/check_parity'"
 end
 
+desc "render random documents through the parser and kramdown and compare"
+task :fuzz do
+  ruby "-e", "require_relative 'tools/fuzz'"
+end
+
 task generate: %i[templates assets entities]
-task default: %i[generate check parity]
+task default: %i[generate check parity fuzz]

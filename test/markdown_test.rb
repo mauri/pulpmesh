@@ -47,8 +47,8 @@ Harness.check("markup in an underlined heading", MD.render("*Title*\n===\n"),
 # holding a line keeps taking them.
 Harness.check("a second line is not underlined", MD.render("One\nTwo\n===\n"),
               "<p>One<br />\nTwo<br />\n===</p>\n")
-Harness.check("an indented underline is not one", MD.render("Title\n  ---\n"),
-              "<p>Title</p>\n\n<hr />\n")
+Harness.check("an indented underline is not one", Harness.ascii(MD.render("Title\n  ---\n")),
+              "<p>Title<br />\n  \\u2014</p>\n")
 Harness.check("an underline with nothing over it is text", MD.render("\n===\n"),
               "\n<p>===</p>\n")
 

@@ -16,6 +16,9 @@ module Pulpmesh
     # The line under a setext heading. Its first character picks the level, and
     # the rest may mix the two, as kramdown's own pattern did.
     SETEXT_UNDERLINE = /\A([-=])[-=]*[ \t]*\z/
+    # A source that ends on a blank line, as against one that merely ends with
+    # a newline.
+    TRAILING_BLANK = /\n[ \t]*\n\s*\z/
     QUOTE = /\A[ \t]{0,3}>[ \t]?/
     BULLET = /\A[ \t]{0,3}[-*+][ \t]+(.*)\z/
     ORDERED = /\A[ \t]{0,3}\d+\.[ \t]+(.*)\z/
@@ -67,9 +70,9 @@ module Pulpmesh
 
     QUOTE_CHAR = /["']/
 
-    # Unicode's General Punctuation block, which holds every character the
-    # typographic pass above can produce. A heading id drops these.
-    PUNCTUATION_BLOCK = (0x2000..0x206F).freeze
+    # What counts as an entity reference inside a raw html block: the shape
+    # only, never the name.
+    RAW_ENTITY = /&(?:\w+|\#[0-9]+|\#[xX][0-9a-fA-F]+);/
 
     # Typographic quotes, ported from kramdown, which took them from RubyPants,
     # which took them from SmartyPants. Which of the four characters a `"` or a
@@ -135,9 +138,13 @@ module Pulpmesh
     # Walks the string once, emitting escaped text and finished html as it goes,
     # so generated markup is never re-escaped and never re-scanned. Precedence is
     # code spans, then links, then strong, then em.
-    def self.inline(text)
+    #
+    # `raw` is the content of a raw html block, where tags and entity references
+    # still pass through but nothing else does: no markdown and no typography,
+    # since what sits inside a block-level element is markup, not prose.
+    def self.inline(text, raw = false)
       open_tags = []
-      out = scan(text, open_tags)
+      out = scan(text, open_tags, raw)
       # Anything still open at the end of the block is closed here, innermost
       # first, as kramdown's html parser does.
       while (name = open_tags.pop)
@@ -146,7 +153,7 @@ module Pulpmesh
       out
     end
 
-    def self.scan(text, open_tags)
+    def self.scan(text, open_tags, raw = false)
       out = ::String.new
       # Plain characters are collected into a run rather than emitted one at a
       # time: the text transforms work on runs, not on single characters. A run
@@ -166,7 +173,13 @@ module Pulpmesh
         char = text[index]
         finish = nil
 
-        if char == "`"
+        if char == "<"
+          finish = html(text, index, open_tags)
+        elsif char == "&"
+          finish = raw ? raw_entity(text, index) : entity(text, index)
+        elsif raw
+          finish = nil
+        elsif char == "`"
           finish = code_span(text, index)
         elsif char == "!" && last_close && index < last_close
           finish = image(text, index)
@@ -174,14 +187,10 @@ module Pulpmesh
           finish = link(text, index, open_tags)
         elsif char == "*" || char == "_"
           finish = emphasis(text, index, open_tags)
-        elsif char == "<"
-          finish = html(text, index, open_tags)
-        elsif char == "&"
-          finish = entity(text, index)
         end
 
         if finish
-          out << text_run(literal, bare)
+          out << text_run(literal, bare, raw)
           literal = ::String.new
           out << finish[0]
           index = finish[1]
@@ -192,8 +201,18 @@ module Pulpmesh
         end
       end
 
-      out << text_run(literal, bare)
+      out << text_run(literal, bare, raw)
       out
+    end
+
+    # An entity reference inside a raw html block is copied out as written, not
+    # decoded and not checked against the entity table: kramdown left `&bogus;`
+    # and `&#65;` both exactly as they were, and escaped only a bare `&`.
+    def self.raw_entity(text, start)
+      match = RAW_ENTITY.match(text, start)
+      return nil unless match && match.begin(0) == start
+
+      [match[0], match.end(0)]
     end
 
     # One run of plain characters, in the order the transforms have to happen:
@@ -203,8 +222,11 @@ module Pulpmesh
     #
     # `bare` is false inside a raw html element, where kramdown left line
     # endings alone.
-    def self.text_run(run, bare)
+    def self.text_run(run, bare, raw)
       return run if run.empty?
+      # Inside a raw html block the text is markup, so only the characters that
+      # would be read as markup are escaped.
+      return escape_text(run) if raw
 
       escaped = escape_text(smart_quotes(dashes(run)))
       bare ? escaped.gsub("\n", "<br />\n") : escaped
@@ -619,27 +641,49 @@ module Pulpmesh
       end
 
       def render
-        blocks = parse(@source.split("\n", -1))
+        blocks = []
+        spaced = []
+        parse(@source.split("\n", -1), blocks, spaced)
         return "" if blocks.empty?
 
         # kramdown kept the blank line that separated the title from the body,
         # and closed the document with a newline.
         leading = @source.start_with?("\n") ? "\n" : ""
         # kramdown closed a document ending in a raw html block with a blank
-        # line rather than a single newline.
-        trailing = @raw_html_last ? "\n\n" : "\n"
-        leading + blocks.join("\n\n") + trailing
+        # line rather than a single newline, and kept a blank line that ended
+        # the source. One trailing newline is not a blank line.
+        trailing = @raw_html_last || TRAILING_BLANK.match?(@source) ? "\n\n" : "\n"
+        leading + join_blocks(blocks, spaced) + trailing
       end
 
       private
 
-      def parse(lines)
-        blocks = []
+      # Two blocks are separated by a blank line only where the source had one
+      # between them, which is the spacing kramdown's output carried.
+      def join_blocks(blocks, spaced)
+        out = ::String.new
         index = 0
+        while index < blocks.length
+          out << (spaced[index] ? "\n\n" : "\n") if index.positive?
+          out << blocks[index]
+          index += 1
+        end
+        out
+      end
+
+      # Appends to `blocks`, and to `spaced` one flag per block saying whether a
+      # blank line came before it. Both are passed in rather than returned: a
+      # method handing back a pair of arrays holding different types is more
+      # than spinel can work out.
+      def parse(lines, blocks, spaced)
+        index = 0
+        blank = false
         while index < lines.length
           line = lines[index]
           @raw_html_last = false unless line.strip.empty?
+          before = blocks.length
           if line.strip.empty?
+            blank = true
             index += 1
           elsif (fence = FENCE.match(line))
             index = fenced_code(blocks, lines, index, fence[1])
@@ -657,21 +701,32 @@ module Pulpmesh
             index = list(blocks, lines, index, "ul", BULLET)
           elsif ORDERED.match(line)
             index = list(blocks, lines, index, "ol", ORDERED)
-          elsif (level = setext_level(lines, index))
+          elsif (level = setext_level(lines, index, blank || blocks.empty?))
             blocks << heading(level, line.strip)
             index += 2
           else
             index = paragraph(blocks, lines, index)
           end
+
+          added = blocks.length - before
+          next unless added.positive?
+
+          added.times { spaced << blank }
+          blank = false
         end
-        blocks
       end
 
       # A line underlined with `=` or `-` is a heading, the character picking
       # the level. Only one line can be underlined, and only where a block
       # starts: a paragraph that has already taken a line goes on taking them,
       # so `One\nTwo\n===` is three lines of text rather than a heading.
-      def setext_level(lines, index)
+      #
+      # `opens` says the line follows a blank one or begins the document, which
+      # kramdown also required — text pressed straight up against the block
+      # before it is a paragraph, underlined or not.
+      def setext_level(lines, index, opens)
+        return nil unless opens
+
         line = lines[index]
         return nil if line.empty? || WHITESPACE.include?(line[0])
         return nil unless (match = SETEXT_UNDERLINE.match(lines[index + 1].to_s))
@@ -714,7 +769,12 @@ module Pulpmesh
           break if depth <= 0
         end
 
-        blocks << body.join("\n").rstrip
+        # A script or a style holds raw text, which is passed on untouched.
+        # Anything else holds markup, so the same tag reader the inline pass uses
+        # walks it: tags are normalised and a character that starts no tag is
+        # escaped, as kramdown escaped it.
+        content = body.join("\n").rstrip
+        blocks << (RAW_TEXT.include?(tag) ? content : Markdown.inline(content, true))
         @raw_html_last = RAW_TEXT.include?(tag)
         index
       end
@@ -741,17 +801,11 @@ module Pulpmesh
 
       # The GFM parser's rule, which is the one the gem's `input: "GFM"` used:
       # downcase, drop everything that is not a word character, dash or space,
-      # then spaces and tabs to dashes. `\w` rather than `\p{Word}`, which
-      # spinel compiles to a pattern that matches nothing.
+      # then spaces and tabs to dashes. `\p{Word}` covers letters in any script,
+      # so an accented heading keeps its letters while a dash, a curled quote or
+      # an emoji falls out.
       def id_for(text)
-        # `\w` is ASCII-only, so non-ascii is decided by code point. That is an
-        # approximation of \p{Word}: it keeps accented letters, and drops
-        # General Punctuation, which is where the quotes, dashes and ellipsis
-        # the typographic pass produces all live. A non-ascii symbol outside
-        # that block is still kept where kramdown would have dropped it.
-        kept = plain_text(text).downcase.gsub(/[^\w\- \t]/) do |char|
-          char.ord >= 128 && !PUNCTUATION_BLOCK.include?(char.ord) ? char : ""
-        end
+        kept = plain_text(text).downcase.gsub(/[^\p{Word}\- \t]/, "")
         base = kept.tr(" \t", "-")
 
         seen = @used_ids[base]
@@ -790,16 +844,44 @@ module Pulpmesh
         index
       end
 
+      # A blank line ends a blockquote, and nothing else does: a line that has
+      # dropped its `>` still belongs to the quote, which is how a wrapped
+      # paragraph inside one reads and is where kramdown drew the line too.
       def blockquote(blocks, lines, index)
         body = []
-        while index < lines.length && !lines[index].strip.empty? && QUOTE.match(lines[index])
+        while index < lines.length && !lines[index].strip.empty?
           body << lines[index].sub(QUOTE, "")
           index += 1
         end
 
-        inner = parse(body)
-        blocks << "<blockquote>\n#{inner.map { |block| "  #{block}" }.join("\n\n")}\n</blockquote>"
+        inner = []
+        inner_spaced = []
+        parse(body, inner, inner_spaced)
+        indented = inner.map { |block| indent(block) }
+        blocks << "<blockquote>\n#{join_blocks(indented, inner_spaced)}\n</blockquote>"
         index
+      end
+
+      # Moves a nested block in by two. A line stays where it is when the
+      # newline before it came from the text rather than from the structure:
+      # either a `<br />` put it there, or it is inside a `<pre>`, where leading
+      # whitespace is content.
+      def indent(block)
+        lines = block.split("\n", -1)
+        out = ::String.new
+        preformatted = false
+        index = 0
+        while index < lines.length
+          line = lines[index]
+          previous = index.positive? ? lines[index - 1] : ""
+          out << "\n" if index.positive?
+          out << "  " unless index.positive? && (preformatted || previous.end_with?("<br />"))
+          out << line
+          preformatted = true if line.include?("<pre")
+          preformatted = false if line.include?("</pre>")
+          index += 1
+        end
+        out
       end
 
       # Tight lists only: a blank line ends the list rather than making it loose.
@@ -835,7 +917,11 @@ module Pulpmesh
         while index < lines.length
           line = lines[index]
           break if line.strip.empty?
-          break if body.any? && (BLOCK_START.match(line) || RULE.match(line) || FENCE.match(line))
+          # A line opening another block ends the paragraph. A horizontal rule
+          # does not: once a paragraph is running, `---` under it is text, and
+          # the typographic pass turns it into a dash. Only a rule that starts a
+          # block of its own is one.
+          break if body.any? && (BLOCK_START.match(line) || block_html_tag(line))
 
           body << line
           index += 1

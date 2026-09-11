@@ -1,0 +1,14 @@
+ok  colliding slugs abort => "0001-clash.md and 0002-clash.md both publish as clash.html"
+ok  the build leaves its marker => true
+ok  previous output removed => false
+ok  source folder untouched => ["solo.md"]
+ok  the section is split, not ended early => true
+ok  one section opens for each that closes => 2
+ok  the item is still closed => true
+ok  the source folder is refused as output => "output directory is the source directory"
+ok  a folder holding the source is refused as output => "output directory contains the source directory"
+ok  the home directory is refused as output => "output directory is the home directory"
+ok  a folder pulpmesh did not write is refused as output => "refusing to delete an output directory pulpmesh did not write"
+ok  the refused folder is untouched => ["notes.txt"]
+ok  an empty folder is accepted as output => true
+ok  missing source refused => "not a directory"

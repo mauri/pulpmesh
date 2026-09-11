@@ -25,11 +25,13 @@ jobs:
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.3.9"
-      - run: gem install --no-document erubi kramdown
+      - run: gem install --no-document erubi kramdown kramdown-parser-gfm
       - name: Committed codegen is up to date
         run: rake check
       - name: CRuby matches the spinel snapshots
         run: rake parity
+      - name: The parser still agrees with kramdown
+        run: rake fuzz
 
   build:
     runs-on: ubuntu-24.04

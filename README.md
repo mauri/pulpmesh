@@ -148,7 +148,9 @@ Headings can be written either way: `# Title` or `Title` underlined with `===`
 for an `h1` and `---` for an `h2`.
 
 Reference links, tables and footnotes are not handled. A line using one comes
-out as the paragraph text it looks like.
+out as the paragraph text it looks like. Lists are tight: a blank line ends one
+rather than making it loose, and a list item holds a line of text rather than
+blocks of its own.
 
 Raw html passes through normalised — an inline tag is emitted with its name
 lowercased, attributes quoted and escaped, and void elements self-closed; a
@@ -189,10 +191,20 @@ reimplemented here instead:
 ```sh
 rake generate   # regenerate templates.rb, assets.rb and entities.rb
 spin build
-spin test       # nine snapshot programs, 202 checks
+spin test       # ten snapshot programs, 216 checks
 rake check      # fail if the committed codegen artifacts are stale
 rake parity     # re-run every test under CRuby against the same snapshots
+rake fuzz       # render random documents through the parser and kramdown
 ```
+
+`rake fuzz` builds documents out of the blocks the parser claims to handle and
+requires the html to match kramdown's byte for byte, allowing only the
+`rel="nofollow"` this adds on purpose. `FUZZ_COUNT` sets how many, and a
+failure prints the seed so `FUZZ_SEED` reproduces it. The corpus leaves out the
+two shapes the parser renders differently on purpose: a language-tagged code
+block, which the hand-rolled highlighter tokenizes its own way, and two lists
+touching or a blank line inside one, which kramdown merges into a single loose
+list and this does not.
 
 `pulpmesh/templates.rb`, `pulpmesh/assets.rb` and `pulpmesh/entities.rb` are
 **generated and committed** — `spin.toml` has no pre-build hook. Never
