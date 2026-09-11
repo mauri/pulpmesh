@@ -18,14 +18,19 @@ require_relative "../pulpmesh"
 ROOT = File.expand_path("..", __dir__)
 
 # pulpmesh adds rel="nofollow" to outbound links, which kramdown does not. It is
-# the one difference the README claims, and the only one this harness allows.
+# the one difference this harness allows.
+#
+# Html is the other, and it cannot be normalised away: kramdown renders a tag an
+# author wrote and pulpmesh escapes it on purpose, so the corpus below contains
+# no tags. A bare `<` still appears in the inline fragments, since both escape
+# one that opens no tag.
 NOFOLLOW = ' rel="nofollow"'
 
 INLINE = [
   "plain words", "a [link](page.html)", "an ![image](pic.png)", "**bold**",
   "*em*", "_em_", "`code()`", "it's fine", '"quoted"', "the '80s",
   "a -- dash", "an --- em dash", "an ... ellipsis", "AT&T", "5 < 6", "a > b",
-  "<b>raw html</b>", "<i>x</i>", "&amp;", "&#65;", "&bogus;", "&#x1F600;",
+  "&amp;", "&#65;", "&bogus;", "&#x1F600;",
   "a [wiki](https://en.wikipedia.org/wiki/Ruby_(programming_language))",
   'a [titled](u "the title")', "snake_case_name", "[1] footnote marker",
   "ID_ATA_FEATURE_SET", "https://example.com/a", "50% of x", "a(b)c",
@@ -51,13 +56,12 @@ def block(kind)
   when :quote then Array.new(rand(1..2)) { "> #{words(2)}" }.join("\n")
   when :rule then ["---", "***", "___"].sample
   when :fence then "```\nliteral -- text 'here'\nnot **markdown**\n```"
-  when :raw_block then "<div>\n#{words(2)}\n</div>"
   else words
   end
 end
 
 KINDS = %i[atx setext_h1 setext_h2 paragraph wrapped bullets ordered quote rule
-           fence raw_block].freeze
+           fence].freeze
 
 # A list may not sit next to another list, and a rule may not follow a paragraph
 # that would swallow it as a setext underline. Both are shapes this parser

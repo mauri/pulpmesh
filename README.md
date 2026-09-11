@@ -141,8 +141,7 @@ copied into the output directory, so the path has to resolve on its own.
 A newline inside a paragraph, a list item or a blockquote is a line break, and
 prose is typeset: quotes curl, `--` becomes an en dash, `---` an em dash and
 `...` an ellipsis. None of that happens inside a code span or a fenced block,
-in a url, in an image's alt text, or inside a raw html element, all of which
-keep exactly what you typed.
+in a url, or in an image's alt text, all of which keep exactly what you typed.
 
 Headings can be written either way: `# Title` or `Title` underlined with `===`
 for an `h1` and `---` for an `h2`.
@@ -152,24 +151,29 @@ out as the paragraph text it looks like. Lists are tight: a blank line ends one
 rather than making it loose, and a list item holds a line of text rather than
 blocks of its own.
 
-Raw html passes through normalised — an inline tag is emitted with its name
-lowercased, attributes quoted and escaped, and void elements self-closed; a
-tag left open is closed at the end of its block, innermost-first; a line
-opening a block-level element becomes a raw block; and a `<` that does not
-begin a real tag stays literal. Html entities are decoded from a bundled
-entity table. The one deliberate exception is `&#0;`, left literal because
-spinel's strings are NUL-terminated at the C boundary.
+## Html
 
-Post bodies, `_pulpmesh.md`'s `footer` and its body (`intro_html`) are all
-rendered as raw, unescaped html by design — pulpmesh assumes the markdown
-source is written by a trusted author, not submitted by end users. Do not
-point it at untrusted or third-party markdown.
+There is none. Markdown is the whole language, and a tag written in a post is
+text like any other:
 
-Normalising is not sanitising. Nothing is filtered: `<script>` passes through,
-and `<img src=x onerror=alert(1)>` comes out as a well-formed tag that still
-runs. pulpmesh builds one person's blog from that person's own files. It is
-not a renderer for markdown that strangers wrote, and the single-author
-assumption is what makes the rest of the design reasonable.
+```markdown
+Use <script> carefully, and set <b>bold</b> with two asterisks.
+```
+
+renders with both tags visible and nothing executed, the `<b>` no more special
+than the `<script>`. There is no passthrough and no option to turn one on.
+
+So there is nothing to sanitise. Every character an author writes is escaped on
+its way out, which leaves the markup the renderer generated as the only markup
+on the page. A `<` that opened no tag was always literal; now every `<` is.
+
+Html entities are still decoded, from a bundled table, so `&mdash;` and
+`&#x1F600;` are ways to type a character your keyboard will not. `&#0;` is the
+one that stays literal, because spinel's strings end at a NUL byte at the C
+boundary.
+
+The `footer` key in `_pulpmesh.md` is the remaining exception: it is written by
+whoever owns the blog rather than by a post, and it is emitted as given.
 
 ## What's inside
 
@@ -179,7 +183,7 @@ reimplemented here instead:
 
 | dependency | replaced by |
 | --- | --- |
-| kramdown | `pulpmesh/markdown.rb` — the markdown parser this project uses, not CommonMark, with kramdown-compatible raw-html and entity handling |
+| kramdown | `pulpmesh/markdown.rb` — the markdown parser this project uses, not CommonMark, and with no html passthrough |
 | Rouge | `pulpmesh/highlight.rb` — hand-rolled `sh` and `ruby` tokenizers, and only those two, emitting Rouge's class names |
 | ERB | `templates/*.erb` compiled ahead of time by Erubi into `pulpmesh/templates.rb` |
 | CGI | `pulpmesh/escape.rb` |

@@ -1,10 +1,15 @@
 # frozen_string_literal: true
 
 module Pulpmesh
-  # The markdown the blog actually uses, rendered to the same html kramdown
-  # produced: ATX and setext headings with generated ids, fenced code, lists,
-  # blockquotes, horizontal rules and paragraphs, over inline code, links,
-  # images, strong and em.
+  # The markdown the blog actually uses: ATX and setext headings with generated
+  # ids, fenced code, lists, blockquotes, horizontal rules and paragraphs, over
+  # inline code, links, images, strong and em.
+  #
+  # Markdown is the whole language. Html written in a post is text like any
+  # other: `<script>` comes out as the five visible characters `<script>`, never
+  # as a tag. There is no passthrough, no tag stack and nothing to sanitise,
+  # because nothing an author writes can become markup that the renderer did not
+  # generate itself.
   #
   # Not CommonMark. Reference links, tables and footnotes are not handled; a
   # line using one is emitted as the paragraph text it looks like.
@@ -34,31 +39,10 @@ module Pulpmesh
     TITLED_DOUBLE = /\A(.*?)[ \t]+"(.*)"\z/
     TITLED_SINGLE = /\A(.*?)[ \t]+'(.*)'\z/
 
-    # Elements that never take a closing tag; they are emitted self-closed and
-    # never pushed onto the open-tag stack.
-    VOID = %w[area base br col embed hr img input link meta param source track wbr].freeze
-
-    # A line opening one of these starts a raw html block rather than a
-    # paragraph, and is passed through untouched to its matching close.
-    BLOCK_LEVEL = %w[
-      address article aside audio blockquote canvas dd details dialog div dl dt
-      fieldset figcaption figure footer form h1 h2 h3 h4 h5 h6 header hgroup hr
-      iframe li main nav noscript ol p pre script section style table tbody td
-      tfoot th thead tr ul video
-    ].freeze
-
-    TAG_NAME = /\A[A-Za-z][A-Za-z0-9-]*\z/
-
-    # Character sets the tag scanner walks one character at a time. A string
-    # include? beats building a match against a regex for every character.
+    # Character sets tested one character at a time. A string include? beats
+    # building a match against a regex for every character.
     WHITESPACE = " \t\r\n\f\v"
     ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-    TAG_NAME_CHARS = "#{ALPHANUMERIC}-"
-    ATTRIBUTE_NAME_CHARS = "#{ALPHANUMERIC}:_.-"
-
-    # Elements whose content is raw text rather than markup. Together with the
-    # void elements these are the blocks kramdown closed with a blank line.
-    RAW_TEXT = %w[script style].freeze
 
     EM_DASH = "—"
     EN_DASH = "–"
@@ -69,10 +53,6 @@ module Pulpmesh
     RSQUO = "’"
 
     QUOTE_CHAR = /["']/
-
-    # What counts as an entity reference inside a raw html block: the shape
-    # only, never the name.
-    RAW_ENTITY = /&(?:\w+|\#[0-9]+|\#[xX][0-9a-fA-F]+);/
 
     # Typographic quotes, ported from kramdown, which took them from RubyPants,
     # which took them from SmartyPants. Which of the four characters a `"` or a
@@ -120,11 +100,12 @@ module Pulpmesh
       [heading.delete_prefix("# ").strip, rest.to_s]
     end
 
-    # Text content, where only the three markup characters are escaped. Quotes
-    # are left alone, as kramdown left them. `unescape_text` reverses this, and
-    # is the only thing that may: an attribute value goes through
-    # `Escape.escape_html`, which escapes quotes too, so that the value stays
-    # inside its delimiters whichever quote a template chose.
+    # Text content, where the three markup characters are escaped and quotes are
+    # left alone. Every character an author writes goes through here, which is
+    # what keeps html in a post from becoming html on the page. An attribute
+    # value goes through `Escape.escape_html` instead, which escapes quotes too,
+    # so that the value stays inside its delimiters whichever quote a template
+    # chose.
     def self.escape_text(text)
       text.to_s.gsub(/[&<>]/) do |char|
         case char
@@ -137,30 +118,12 @@ module Pulpmesh
 
     # Walks the string once, emitting escaped text and finished html as it goes,
     # so generated markup is never re-escaped and never re-scanned. Precedence is
-    # code spans, then links, then strong, then em.
-    #
-    # `raw` is the content of a raw html block, where tags and entity references
-    # still pass through but nothing else does: no markdown and no typography,
-    # since what sits inside a block-level element is markup, not prose.
-    def self.inline(text, raw = false)
-      open_tags = []
-      out = scan(text, open_tags, raw)
-      # Anything still open at the end of the block is closed here, innermost
-      # first, as kramdown's html parser does.
-      while (name = open_tags.pop)
-        out << "</#{name}>"
-      end
-      out
-    end
-
-    def self.scan(text, open_tags, raw = false)
+    # code spans, then images, then links, then strong, then em.
+    def self.inline(text)
       out = ::String.new
       # Plain characters are collected into a run rather than emitted one at a
-      # time: the text transforms work on runs, not on single characters. A run
-      # never spans a tag, so whether it sits inside a raw html element is
-      # decided once, when its first character arrives.
+      # time: the text transforms below work on runs, not on single characters.
       literal = ::String.new
-      bare = open_tags.empty?
       index = 0
       length = text.length
       # A link or an image needs a `]` after the `[` that opens it. Without one
@@ -173,63 +136,41 @@ module Pulpmesh
         char = text[index]
         finish = nil
 
-        if char == "<"
-          finish = html(text, index, open_tags)
-        elsif char == "&"
-          finish = raw ? raw_entity(text, index) : entity(text, index)
-        elsif raw
-          finish = nil
-        elsif char == "`"
+        if char == "`"
           finish = code_span(text, index)
         elsif char == "!" && last_close && index < last_close
           finish = image(text, index)
         elsif char == "[" && last_close && index < last_close
-          finish = link(text, index, open_tags)
+          finish = link(text, index)
         elsif char == "*" || char == "_"
-          finish = emphasis(text, index, open_tags)
+          finish = emphasis(text, index)
+        elsif char == "&"
+          finish = entity(text, index)
         end
 
         if finish
-          out << text_run(literal, bare, raw)
+          out << text_run(literal)
           literal = ::String.new
           out << finish[0]
           index = finish[1]
         else
-          bare = open_tags.empty? if literal.empty?
           literal << char
           index += 1
         end
       end
 
-      out << text_run(literal, bare, raw)
+      out << text_run(literal)
       out
-    end
-
-    # An entity reference inside a raw html block is copied out as written, not
-    # decoded and not checked against the entity table: kramdown left `&bogus;`
-    # and `&#65;` both exactly as they were, and escaped only a bare `&`.
-    def self.raw_entity(text, start)
-      match = RAW_ENTITY.match(text, start)
-      return nil unless match && match.begin(0) == start
-
-      [match[0], match.end(0)]
     end
 
     # One run of plain characters, in the order the transforms have to happen:
     # the typographic ones first, since they read the characters around a quote,
     # then escaping, then the line breaks, which are markup and so cannot be
     # escaped afterwards.
-    #
-    # `bare` is false inside a raw html element, where kramdown left line
-    # endings alone.
-    def self.text_run(run, bare, raw)
+    def self.text_run(run)
       return run if run.empty?
-      # Inside a raw html block the text is markup, so only the characters that
-      # would be read as markup are escaped.
-      return escape_text(run) if raw
 
-      escaped = escape_text(smart_quotes(dashes(run)))
-      bare ? escaped.gsub("\n", "<br />\n") : escaped
+      escape_text(smart_quotes(dashes(run))).gsub("\n", "<br />\n")
     end
 
     # `---` is an em dash, `--` an en dash and `...` an ellipsis. Longest first,
@@ -335,109 +276,6 @@ module Pulpmesh
       nil
     end
 
-    # `<` starts raw html only when what follows really is a tag or a comment.
-    # Anything else — `5 < 6`, `a <3 b`, a stray `</b>` — is literal text.
-    # Returns [html, next_index] or nil.
-    def self.html(text, start, open_tags)
-      return comment(text, start) if text[start, 4] == "<!--"
-
-      cursor = start + 1
-      closing = text[cursor] == "/"
-      cursor += 1 if closing
-
-      name_start = cursor
-      cursor += 1 while cursor < text.length && TAG_NAME_CHARS.include?(text[cursor])
-      name = text[name_start...cursor].downcase
-      return nil if name.empty? || !name.match?(TAG_NAME)
-
-      if closing
-        return nil unless text[cursor] == ">"
-        # Only the innermost open tag can be closed; anything else is text, so a
-        # crossed pair like `<b><i>x</b>` leaves the `</b>` visible.
-        return nil unless open_tags.last == name
-
-        open_tags.pop
-        return ["</#{name}>", cursor + 1]
-      end
-
-      parsed = attributes(text, cursor)
-      return nil unless parsed
-
-      rendered = parsed[0]
-      finish = parsed[1]
-      self_closed = parsed[2]
-
-      if VOID.include?(name) || self_closed
-        ["<#{name}#{rendered} />", finish]
-      else
-        open_tags.push(name)
-        ["<#{name}#{rendered}>", finish]
-      end
-    end
-
-    def self.comment(text, start)
-      finish = text.index("-->", start + 4)
-      return nil unless finish
-
-      [text[start..(finish + 2)], finish + 3]
-    end
-
-    # Reads attributes up to the closing `>`, normalising each to
-    # `name="value"`. Returns [rendered, index_after_gt, self_closed] or nil if
-    # the tag never closes.
-    #
-    # Normalising is not sanitising. Nothing here drops a tag, an attribute or a
-    # url: `onerror=alert(1)` comes out as a tidy `onerror="alert(1)"` and works.
-    # Raw html is passed through by design, on the assumption that the markdown
-    # was written by whoever owns the blog. Do not reach for this on input from
-    # anyone else.
-    def self.attributes(text, start)
-      out = ::String.new
-      cursor = start
-      self_closed = false
-
-      while cursor < text.length
-        cursor += 1 while cursor < text.length && WHITESPACE.include?(text[cursor])
-
-        if text[cursor] == "/" && text[cursor + 1] == ">"
-          return [out, cursor + 2, true]
-        elsif text[cursor] == ">"
-          return [out, cursor + 1, self_closed]
-        end
-
-        name_start = cursor
-        cursor += 1 while cursor < text.length && ATTRIBUTE_NAME_CHARS.include?(text[cursor])
-        return nil if cursor == name_start
-
-        name = text[name_start...cursor].downcase
-        cursor += 1 while cursor < text.length && WHITESPACE.include?(text[cursor])
-
-        value = ""
-        if text[cursor] == "="
-          cursor += 1
-          cursor += 1 while cursor < text.length && WHITESPACE.include?(text[cursor])
-          quote = text[cursor]
-          if quote == "\"" || quote == "'"
-            cursor += 1
-            value_start = cursor
-            cursor += 1 while cursor < text.length && text[cursor] != quote
-            return nil if cursor >= text.length
-
-            value = text[value_start...cursor]
-            cursor += 1
-          else
-            value_start = cursor
-            cursor += 1 while cursor < text.length && !WHITESPACE.include?(text[cursor]) && text[cursor] != ">"
-            value = text[value_start...cursor]
-          end
-        end
-
-        # A bare attribute becomes `name=""`, matching kramdown's normalisation.
-        out << " #{name}=\"#{Escape.escape_html(decode_entities(value))}\""
-      end
-      nil
-    end
-
     # `&name;`, `&#123;` or `&#x1F;`. An entity that is not recognised is left
     # for the caller to escape, so `&bogus;` renders as literal text.
     # Returns [text, next_index] or nil.
@@ -476,33 +314,9 @@ module Pulpmesh
       [escape_text([code_point].pack("U")), finish + 1]
     end
 
-    # Entities inside an attribute value are decoded before the value is
-    # re-escaped, so `&amp;` survives as `&amp;` rather than `&amp;amp;`.
-    def self.decode_entities(value)
-      out = ::String.new
-      index = 0
-      while index < value.length
-        if value[index] == "&"
-          finish = entity(value, index)
-          if finish
-            out << unescape_text(finish[0])
-            index = finish[1]
-            next
-          end
-        end
-        out << value[index]
-        index += 1
-      end
-      out
-    end
-
-    def self.unescape_text(text)
-      text.gsub("&lt;", "<").gsub("&gt;", ">").gsub("&amp;", "&")
-    end
-
     # `[label](href)` or `[label](href "title")`. A `[` with no matching `](...)`
     # is literal text, which is what a footnote marker like `[1]` relies on.
-    def self.link(text, start, open_tags)
+    def self.link(text, start)
       label_end = matching_bracket(text, start)
       return nil unless label_end && text[label_end + 1] == "("
 
@@ -513,7 +327,7 @@ module Pulpmesh
       title = parsed[1] ? " title=\"#{Escape.escape_html(parsed[1])}\"" : ""
       label = text[(start + 1)...label_end]
       rel = href.match?(ABSOLUTE) ? " rel=\"nofollow\"" : ""
-      ["<a href=\"#{Escape.escape_html(href)}\"#{rel}#{title}>#{scan(label, open_tags)}</a>", parsed[2]]
+      ["<a href=\"#{Escape.escape_html(href)}\"#{rel}#{title}>#{inline(label)}</a>", parsed[2]]
     end
 
     # `![alt](src)`. The label becomes the alt text literally: no inline markup
@@ -587,7 +401,7 @@ module Pulpmesh
 
     # `**x**` / `__x__` are strong, `*x*` / `_x_` are em. An underscore only
     # delimits at a word boundary, so `snake_case_name` stays intact.
-    def self.emphasis(text, start, open_tags)
+    def self.emphasis(text, start)
       char = text[start]
       double = text[start + 1] == char
       marker = double ? "#{char}#{char}" : char
@@ -619,7 +433,7 @@ module Pulpmesh
 
         tag = double ? "strong" : "em"
         content = text[content_start...found]
-        return ["<#{tag}>#{scan(content, open_tags)}</#{tag}>", found + marker.length]
+        return ["<#{tag}>#{inline(content)}</#{tag}>", found + marker.length]
       end
       nil
     end
@@ -637,7 +451,6 @@ module Pulpmesh
       def initialize(source)
         @source = source.gsub("\r\n", "\n")
         @used_ids = {}
-        @raw_html_last = false
       end
 
       def render
@@ -649,10 +462,9 @@ module Pulpmesh
         # kramdown kept the blank line that separated the title from the body,
         # and closed the document with a newline.
         leading = @source.start_with?("\n") ? "\n" : ""
-        # kramdown closed a document ending in a raw html block with a blank
-        # line rather than a single newline, and kept a blank line that ended
-        # the source. One trailing newline is not a blank line.
-        trailing = @raw_html_last || TRAILING_BLANK.match?(@source) ? "\n\n" : "\n"
+        # A blank line that ended the source is kept. One trailing newline is
+        # not a blank line.
+        trailing = TRAILING_BLANK.match?(@source) ? "\n\n" : "\n"
         leading + join_blocks(blocks, spaced) + trailing
       end
 
@@ -680,7 +492,6 @@ module Pulpmesh
         blank = false
         while index < lines.length
           line = lines[index]
-          @raw_html_last = false unless line.strip.empty?
           before = blocks.length
           if line.strip.empty?
             blank = true
@@ -693,8 +504,6 @@ module Pulpmesh
           elsif RULE.match(line)
             blocks << "<hr />"
             index += 1
-          elsif (tag = block_html_tag(line))
-            index = block_html(blocks, lines, index, tag)
           elsif QUOTE.match(line)
             index = blockquote(blocks, lines, index)
           elsif BULLET.match(line)
@@ -732,64 +541,6 @@ module Pulpmesh
         return nil unless (match = SETEXT_UNDERLINE.match(lines[index + 1].to_s))
 
         match[1] == "=" ? 1 : 2
-      end
-
-      # A line opening a block-level element starts a raw html block. Only the
-      # opening tag has to be on the line; the rest is passed through untouched.
-      def block_html_tag(line)
-        match = /\A<([A-Za-z][A-Za-z0-9-]*)(?:[ \t>\/]|\z)/.match(line)
-        return nil unless match
-
-        name = match[1].downcase
-        BLOCK_LEVEL.include?(name) ? name : nil
-      end
-
-      # Consumes to the matching close, counting nested opens of the same name so
-      # a `<div>` inside a `<div>` does not end the block early. A void element,
-      # a self-closed tag, or a block that never closes ends at the line itself.
-      def block_html(blocks, lines, index, tag)
-        first = lines[index]
-        if VOID.include?(tag) || first.rstrip.end_with?("/>")
-          # Normalised through the same tag parser the inline pass uses, so a
-          # block `<hr>` comes out `<hr />` as kramdown wrote it.
-          parsed = Markdown.html(first.rstrip, 0, [])
-          blocks << (parsed && parsed[1] == first.rstrip.length ? parsed[0] : first.rstrip)
-          @raw_html_last = true
-          return index + 1
-        end
-
-        body = []
-        depth = 0
-        while index < lines.length
-          line = lines[index]
-          depth += count_tag(line, "<#{tag}")
-          depth -= count_tag(line, "</#{tag}")
-          body << line
-          index += 1
-          break if depth <= 0
-        end
-
-        # A script or a style holds raw text, which is passed on untouched.
-        # Anything else holds markup, so the same tag reader the inline pass uses
-        # walks it: tags are normalised and a character that starts no tag is
-        # escaped, as kramdown escaped it.
-        content = body.join("\n").rstrip
-        blocks << (RAW_TEXT.include?(tag) ? content : Markdown.inline(content, true))
-        @raw_html_last = RAW_TEXT.include?(tag)
-        index
-      end
-
-      # Occurrences of a literal tag opener, requiring a delimiter after the
-      # name so `<div` does not also match `<divider`.
-      def count_tag(line, opener)
-        count = 0
-        cursor = 0
-        while (found = line.index(opener, cursor))
-          after = line[found + opener.length]
-          count += 1 if after.nil? || after == ">" || after == " " || after == "\t" || after == "/"
-          cursor = found + opener.length
-        end
-        count
       end
 
       def heading(level, text)
@@ -921,7 +672,7 @@ module Pulpmesh
           # does not: once a paragraph is running, `---` under it is text, and
           # the typographic pass turns it into a dash. Only a rule that starts a
           # block of its own is one.
-          break if body.any? && (BLOCK_START.match(line) || block_html_tag(line))
+          break if body.any? && BLOCK_START.match(line)
 
           body << line
           index += 1

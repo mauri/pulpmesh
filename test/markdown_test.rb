@@ -15,8 +15,6 @@ Harness.check("leading blank line kept", MD.render("\nHello."), "\n<p>Hello.</p>
 Harness.check("two paragraphs", MD.render("One.\n\nTwo."), "<p>One.</p>\n\n<p>Two.</p>\n")
 Harness.check("a newline in a paragraph is a line break", MD.render("a\nb"),
               "<p>a<br />\nb</p>\n")
-Harness.check("a newline in raw html is not", MD.render("<b>a\nb</b>"),
-              "<p><b>a\nb</b></p>\n")
 Harness.check("a newline in a code span is not", MD.render("`a\nb`"),
               "<p><code>a\nb</code></p>\n")
 Harness.check("empty input", MD.render(""), "")
@@ -130,39 +128,27 @@ Harness.check("nested quotes", Harness.ascii(MD.render(%(he said "'quoted' words
 Harness.check("markup characters escaped", MD.render("5 < 6 & 7 > 4"),
               "<p>5 &lt; 6 &amp; 7 &gt; 4</p>\n")
 
-# Raw html passes through as kramdown passed it.
-Harness.check("paired inline tag", MD.render("a <b>bold</b> c"), "<p>a <b>bold</b> c</p>\n")
-Harness.check("unclosed tag is closed at the end of the block",
-              MD.render("AT&T and <b> tags"), "<p>AT&amp;T and <b> tags</b></p>\n")
-Harness.check("nested unclosed tags close innermost first",
-              MD.render("a <b> <i> c"), "<p>a <b> <i> c</i></b></p>\n")
-Harness.check("crossed pair leaves the stray close as text",
-              MD.render("a <b><i>x</b></i> c"), "<p>a <b><i>x&lt;/b&gt;</i> c</b></p>\n")
-Harness.check("closing tag with no opener is text",
-              MD.render("a </b> c"), "<p>a &lt;/b&gt; c</p>\n")
-Harness.check("void element is self-closed", MD.render("a <br> b"), "<p>a <br /> b</p>\n")
-Harness.check("attributes are normalised",
-              MD.render(%(a <span class="x" data-y='z'>s</span> b)),
-              "<p>a <span class=\"x\" data-y=\"z\">s</span> b</p>\n")
-Harness.check("bare attribute gets an empty value",
-              MD.render("a <input disabled> b"), "<p>a <input disabled=\"\" /> b</p>\n")
-Harness.check("attribute value is escaped",
-              MD.render(%(a <b title="x>y">z</b> c)), "<p>a <b title=\"x&gt;y\">z</b> c</p>\n")
-Harness.check("tag name is lowercased", MD.render("a <B>x</B> b"), "<p>a <b>x</b> b</p>\n")
-Harness.check("markdown inside a tag is still rendered",
-              MD.render("a <b>*it*</b> b"), "<p>a <b><em>it</em></b> b</p>\n")
-Harness.check("comment passes through", MD.render("a <!-- hi --> b"), "<p>a <!-- hi --> b</p>\n")
-Harness.check("lt that is not a tag stays literal", MD.render("5 < 6 and a <3 b"),
-              "<p>5 &lt; 6 and a &lt;3 b</p>\n")
-Harness.check("tag inside a code span is escaped",
-              MD.render("use `<b>` here"), "<p>use <code>&lt;b&gt;</code> here</p>\n")
-Harness.check("block level element is a raw block",
+# Html in a post is text. There is no tag to close, no attribute to normalise
+# and nothing to sanitise, because nothing here becomes markup.
+Harness.check("a tag is text", MD.render("a <b>bold</b> c"),
+              "<p>a &lt;b&gt;bold&lt;/b&gt; c</p>\n")
+Harness.check("a script tag is text", MD.render("<script>alert(1)</script>"),
+              "<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>\n")
+Harness.check("an event handler is text", MD.render("<img src=x onerror=alert(1)>"),
+              "<p>&lt;img src=x onerror=alert(1)&gt;</p>\n")
+Harness.check("a closing tag is text", MD.render("a </b> c"), "<p>a &lt;/b&gt; c</p>\n")
+Harness.check("a comment is text", MD.render("a <!-- hi --> b"),
+              "<p>a &lt;!– hi –&gt; b</p>\n")
+Harness.check("a block level element is text, not a block",
               MD.render("text\n\n<div>x</div>\n\ntext"),
-              "<p>text</p>\n\n<div>x</div>\n\n<p>text</p>\n")
-Harness.check("nested block level element", MD.render("<div>\n<div>x</div>\n</div>"),
-              "<div>\n<div>x</div>\n</div>\n")
-Harness.check("void block is normalised and closes the document",
-              MD.render("<hr>"), "<hr />\n\n")
+              "<p>text</p>\n\n<p>&lt;div&gt;x&lt;/div&gt;</p>\n\n<p>text</p>\n")
+Harness.check("markdown inside a tag is still markdown",
+              MD.render("a <b>*it*</b> b"),
+              "<p>a &lt;b&gt;<em>it</em>&lt;/b&gt; b</p>\n")
+Harness.check("lt that is not a tag is text too", MD.render("5 < 6 and a <3 b"),
+              "<p>5 &lt; 6 and a &lt;3 b</p>\n")
+Harness.check("a tag inside a code span is escaped once",
+              MD.render("use `<b>` here"), "<p>use <code>&lt;b&gt;</code> here</p>\n")
 
 # Entities are decoded and re-escaped, never double-escaped.
 Harness.check("named entity survives", MD.render("AT&T &amp; co"), "<p>AT&amp;T &amp; co</p>\n")

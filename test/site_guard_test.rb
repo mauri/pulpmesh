@@ -39,21 +39,26 @@ Harness.scratch("replace-src") do |source|
   Harness.check("source folder untouched", Harness.children(source), before)
 end
 
-# A post carrying the sequence that ends a CDATA section does not end the one
-# the feed wraps it in. A script block is where it can survive: everywhere else
-# the `>` is escaped on the way out.
+# The feed wraps each post's html in a CDATA section, which ends at the first
+# `]]>` in it. No post can produce one any more, since every `>` an author
+# writes is escaped, but the wrapper does not lean on that: it splits the
+# sequence wherever it finds it.
 Harness.scratch("cdata-src") do |source|
   File.write(File.join(source, "_pulpmesh.md"), "---\nbase_url: https://cdata.example\n---\n")
-  File.write(File.join(source, "brackets.md"),
-             "# Brackets\n\n<script>\nvar a = b ]]> c\n</script>\n")
+  File.write(File.join(source, "brackets.md"), "# Brackets\n\na ]]> b\n")
 
-  Harness.build("cdata", source) do |_site, out|
+  Harness.build("cdata", source) do |site, out|
     feed = File.read(File.join(out, "rss.xml"))
-    Harness.check("the section is split, not ended early",
-                  feed.include?("b ]]]]><![CDATA[> c"), true)
+    Harness.check("a post cannot put the sequence in the feed", feed.include?("a ]]> b"), false)
+    Harness.check("the post shows it as text", feed.include?("a ]]&gt; b"), true)
     Harness.check("one section opens for each that closes",
                   feed.scan("<![CDATA[").size, feed.scan("]]>").size)
-    Harness.check("the item is still closed", feed.include?("</description>\n    </item>"), true)
+
+    context = Pulpmesh::Site::Context.new(site)
+    Harness.check("the wrapper splits the sequence anyway",
+                  context.cdata("a ]]> b"), "<![CDATA[a ]]]]><![CDATA[> b]]>")
+    Harness.check("and leaves html without it alone",
+                  context.cdata("<p>x</p>"), "<![CDATA[<p>x</p>]]>")
   end
 end
 
