@@ -167,10 +167,10 @@ So there is nothing to sanitise. Every character an author writes is escaped on
 its way out, which leaves the markup the renderer generated as the only markup
 on the page. A `<` that opened no tag was always literal; now every `<` is.
 
-Html entities are still decoded, from a bundled table, so `&mdash;` and
-`&#x1F600;` are ways to type a character your keyboard will not. `&#0;` is the
-one that stays literal, because spinel's strings end at a NUL byte at the C
-boundary.
+An entity reference is text on the same terms: `&amp;` is the five characters
+you typed and `&mdash;` the eight, not an ampersand and not a dash. Write the
+character you want — the source is utf-8 and a `<` needs no escaping, since
+nothing here reads one as markup.
 
 The `footer` key in `_pulpmesh.md` is the remaining exception: it is written by
 whoever owns the blog rather than by a post, and it is emitted as given.
@@ -193,9 +193,9 @@ reimplemented here instead:
 ## Development
 
 ```sh
-rake generate   # regenerate templates.rb, assets.rb and entities.rb
+rake generate   # regenerate templates.rb and assets.rb
 spin build
-spin test       # ten snapshot programs, 216 checks
+spin test       # ten snapshot programs, 199 checks
 rake check      # fail if the committed codegen artifacts are stale
 rake parity     # re-run every test under CRuby against the same snapshots
 rake fuzz       # render random documents through the parser and kramdown
@@ -210,12 +210,11 @@ block, which the hand-rolled highlighter tokenizes its own way, and two lists
 touching or a blank line inside one, which kramdown merges into a single loose
 list and this does not.
 
-`pulpmesh/templates.rb`, `pulpmesh/assets.rb` and `pulpmesh/entities.rb` are
-**generated and committed** — `spin.toml` has no pre-build hook. Never
-hand-edit them; edit `templates/*.erb` or the files in `assets/` and run
-`rake generate`. Erubi and kramdown are dev-machine tools for that task only —
-kramdown supplies the entity table as data — and neither is a dependency of
-the binary.
+`pulpmesh/templates.rb` and `pulpmesh/assets.rb` are **generated and
+committed** — `spin.toml` has no pre-build hook. Never hand-edit them; edit
+`templates/*.erb` or the files in `assets/` and run `rake generate`. Erubi
+compiles the templates and kramdown is what `rake fuzz` compares against; both
+are dev-machine tools, and neither is a dependency of the binary.
 
 ## License
 

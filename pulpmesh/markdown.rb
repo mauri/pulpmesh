@@ -6,10 +6,10 @@ module Pulpmesh
   # inline code, links, images, strong and em.
   #
   # Markdown is the whole language. Html written in a post is text like any
-  # other: `<script>` comes out as the five visible characters `<script>`, never
-  # as a tag. There is no passthrough, no tag stack and nothing to sanitise,
-  # because nothing an author writes can become markup that the renderer did not
-  # generate itself.
+  # other: `<script>` is read as the characters it is made of, never as a tag,
+  # and `&amp;` as the five characters it is made of, never as an ampersand.
+  # There is no passthrough, no tag stack and nothing to sanitise, because
+  # nothing an author writes can become markup the renderer did not generate.
   #
   # Not CommonMark. Reference links, tables and footnotes are not handled; a
   # line using one is emitted as the paragraph text it looks like.
@@ -29,11 +29,6 @@ module Pulpmesh
     ORDERED = /\A[ \t]{0,3}\d+\.[ \t]+(.*)\z/
     BLOCK_START = /\A(?:\#{1,6}[ \t]|```|~~~|[ \t]{0,3}>|[ \t]{0,3}[-*+][ \t]|[ \t]{0,3}\d+\.[ \t])/
     ABSOLUTE = %r{\A[a-z][a-z0-9+.-]*://}i
-
-    # The bounds of a decodable numeric character reference.
-    MAX_CODE_POINT = 0x10FFFF
-    SURROGATE_FIRST = 0xD800
-    SURROGATE_LAST = 0xDFFF
 
     # The optional `"title"` trailing a link or image destination.
     TITLED_DOUBLE = /\A(.*?)[ \t]+"(.*)"\z/
@@ -144,8 +139,6 @@ module Pulpmesh
           finish = link(text, index)
         elsif char == "*" || char == "_"
           finish = emphasis(text, index)
-        elsif char == "&"
-          finish = entity(text, index)
         end
 
         if finish
@@ -274,44 +267,6 @@ module Pulpmesh
         end
       end
       nil
-    end
-
-    # `&name;`, `&#123;` or `&#x1F;`. An entity that is not recognised is left
-    # for the caller to escape, so `&bogus;` renders as literal text.
-    # Returns [text, next_index] or nil.
-    def self.entity(text, start)
-      finish = text.index(";", start + 1)
-      return nil if finish.nil? || finish == start + 1 || finish - start > 12
-
-      body = text[(start + 1)...finish]
-
-      if body.start_with?("#")
-        digits = body[1..].to_s
-        code = if digits.start_with?("x") || digits.start_with?("X")
-                 hex = digits[1..].to_s
-                 hex.match?(/\A[0-9a-fA-F]+\z/) ? hex.to_i(16) : nil
-               elsif digits.match?(/\A[0-9]+\z/)
-                 digits.to_i
-               end
-        # `&#0;` is left as literal text rather than decoded: spinel's strings
-        # are NUL-terminated at the C boundary, so an embedded NUL would
-        # truncate the document.
-        return nil if code.nil? || code.zero?
-
-        # Past the end of unicode, or one half of a surrogate pair, names no
-        # character. `pack("U")` would raise or build a byte sequence that
-        # raises the next time the string is read, so these stay literal too.
-        return nil if code > MAX_CODE_POINT || (code >= SURROGATE_FIRST && code <= SURROGATE_LAST)
-
-        # `pack("U")` rather than `chr("UTF-8")`: spinel supports Integer#chr
-        # only without an encoding argument, which limits it to ascii.
-        return [escape_text([code].pack("U")), finish + 1]
-      end
-
-      code_point = ENTITIES[body]
-      return nil unless code_point
-
-      [escape_text([code_point].pack("U")), finish + 1]
     end
 
     # `[label](href)` or `[label](href "title")`. A `[` with no matching `](...)`

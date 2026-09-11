@@ -150,21 +150,13 @@ Harness.check("lt that is not a tag is text too", MD.render("5 < 6 and a <3 b"),
 Harness.check("a tag inside a code span is escaped once",
               MD.render("use `<b>` here"), "<p>use <code>&lt;b&gt;</code> here</p>\n")
 
-# Entities are decoded and re-escaped, never double-escaped.
-Harness.check("named entity survives", MD.render("AT&T &amp; co"), "<p>AT&amp;T &amp; co</p>\n")
-Harness.check("numeric entity decoded", MD.render("a &#x41; b"), "<p>a A b</p>\n")
-Harness.check("unknown entity stays literal", MD.render("a &bogus; b"), "<p>a &amp;bogus; b</p>\n")
-Harness.check("latin-1 named entity", MD.render("Caf&eacute;"), "<p>Caf\u00E9</p>\n")
-Harness.check("entity names are case sensitive", MD.render("&Eacute; &eacute;"), "<p>\u00C9 \u00E9</p>\n")
-Harness.check("typographic entity", MD.render("a &mdash; b"), "<p>a \u2014 b</p>\n")
-Harness.check("non-ascii numeric entity", MD.render("a &#233; b"), "<p>a \u00E9 b</p>\n")
-# Left literal on purpose: spinel's strings are NUL-terminated at the C
-# boundary, so decoding this would truncate the document.
-Harness.check("nul entity is refused", MD.render("a &#0; b"), "<p>a &amp;#0; b</p>\n")
-Harness.check("entity past the end of unicode is refused", MD.render("&#x110000;"),
-              "<p>&amp;#x110000;</p>\n")
-Harness.check("surrogate entity is refused", MD.render("&#xD800;"), "<p>&amp;#xD800;</p>\n")
-Harness.check("the last code point still decodes",
-              Harness.ascii(MD.render("&#x10FFFF;")), "<p>\\u10FFFF</p>\n")
-Harness.check("a huge decimal entity is refused", MD.render("&#9999999999;"),
-              "<p>&amp;#9999999999;</p>\n")
+# An entity reference is text too. There is no table to consult and no
+# character to decode: an ampersand is an ampersand.
+Harness.check("a named entity is text", MD.render("AT&T &amp; co"),
+              "<p>AT&amp;T &amp;amp; co</p>\n")
+Harness.check("a numeric entity is text", MD.render("a &#x41; b"),
+              "<p>a &amp;#x41; b</p>\n")
+Harness.check("a typographic entity is text", MD.render("a &mdash; b"),
+              "<p>a &amp;mdash; b</p>\n")
+Harness.check("a bare ampersand is escaped once", MD.render("Ben & Jerry"),
+              "<p>Ben &amp; Jerry</p>\n")

@@ -21,16 +21,16 @@ ROOT = File.expand_path("..", __dir__)
 # the one difference this harness allows.
 #
 # Html is the other, and it cannot be normalised away: kramdown renders a tag an
-# author wrote and pulpmesh escapes it on purpose, so the corpus below contains
-# no tags. A bare `<` still appears in the inline fragments, since both escape
-# one that opens no tag.
+# author wrote, and decodes an entity reference, where pulpmesh escapes both on
+# purpose. So the corpus below contains neither. A bare `<` and a bare `&` do
+# appear, since both renderers escape those the same way.
 NOFOLLOW = ' rel="nofollow"'
 
 INLINE = [
   "plain words", "a [link](page.html)", "an ![image](pic.png)", "**bold**",
   "*em*", "_em_", "`code()`", "it's fine", '"quoted"', "the '80s",
   "a -- dash", "an --- em dash", "an ... ellipsis", "AT&T", "5 < 6", "a > b",
-  "&amp;", "&#65;", "&bogus;", "&#x1F600;",
+  "Ben & Jerry",
   "a [wiki](https://en.wikipedia.org/wiki/Ruby_(programming_language))",
   'a [titled](u "the title")', "snake_case_name", "[1] footnote marker",
   "ID_ATA_FEATURE_SET", "https://example.com/a", "50% of x", "a(b)c",
