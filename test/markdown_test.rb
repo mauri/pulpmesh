@@ -57,6 +57,10 @@ Harness.check("parens in a url are balanced, not cut at the first one",
               "rel=\"nofollow\">Ruby</a></p>\n")
 Harness.check("an unbalanced destination is literal text", MD.render("[x](a(b)"),
               "<p>[x](a(b)</p>\n")
+# Brackets that close nothing used to be scanned to the end of the text once
+# each, which made a paragraph of them take time squared in its length.
+Harness.check("a run of unclosed brackets is literal text", MD.render("[" * 400),
+              "<p>#{"[" * 400}</p>\n")
 Harness.check("a title is its own attribute", MD.render(%([x](u "t"))),
               "<p><a href=\"u\" title=\"t\">x</a></p>\n")
 Harness.check("a single-quoted title too", MD.render("[x](u 't')"),

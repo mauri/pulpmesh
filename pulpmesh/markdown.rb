@@ -44,6 +44,13 @@ module Pulpmesh
 
     TAG_NAME = /\A[A-Za-z][A-Za-z0-9-]*\z/
 
+    # Character sets the tag scanner walks one character at a time. A string
+    # include? beats building a match against a regex for every character.
+    WHITESPACE = " \t\r\n\f\v"
+    ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    TAG_NAME_CHARS = "#{ALPHANUMERIC}-"
+    ATTRIBUTE_NAME_CHARS = "#{ALPHANUMERIC}:_.-"
+
     # Elements whose content is raw text rather than markup. Together with the
     # void elements these are the blocks kramdown closed with a blank line.
     RAW_TEXT = %w[script style].freeze
@@ -97,6 +104,11 @@ module Pulpmesh
       out = ::String.new
       index = 0
       length = text.length
+      # A link or an image needs a `]` after the `[` that opens it. Without one
+      # ahead, matching_bracket would walk to the end of the text before giving
+      # up, once per candidate, which is what made a paragraph of bare brackets
+      # take time proportional to its length squared. Found once here instead.
+      last_close = text.rindex("]")
 
       while index < length
         char = text[index]
@@ -109,14 +121,14 @@ module Pulpmesh
             index = finish[1]
             handled = true
           end
-        elsif char == "!"
+        elsif char == "!" && last_close && index < last_close
           finish = image(text, index)
           if finish
             out << finish[0]
             index = finish[1]
             handled = true
           end
-        elsif char == "["
+        elsif char == "[" && last_close && index < last_close
           finish = link(text, index, open_tags)
           if finish
             out << finish[0]
@@ -193,7 +205,7 @@ module Pulpmesh
       cursor += 1 if closing
 
       name_start = cursor
-      cursor += 1 while cursor < text.length && text[cursor].match?(/[A-Za-z0-9-]/)
+      cursor += 1 while cursor < text.length && TAG_NAME_CHARS.include?(text[cursor])
       name = text[name_start...cursor].downcase
       return nil if name.empty? || !name.match?(TAG_NAME)
 
@@ -238,7 +250,7 @@ module Pulpmesh
       self_closed = false
 
       while cursor < text.length
-        cursor += 1 while cursor < text.length && text[cursor].match?(/\s/)
+        cursor += 1 while cursor < text.length && WHITESPACE.include?(text[cursor])
 
         if text[cursor] == "/" && text[cursor + 1] == ">"
           return [out, cursor + 2, true]
@@ -247,16 +259,16 @@ module Pulpmesh
         end
 
         name_start = cursor
-        cursor += 1 while cursor < text.length && text[cursor].match?(/[A-Za-z0-9:_.-]/)
+        cursor += 1 while cursor < text.length && ATTRIBUTE_NAME_CHARS.include?(text[cursor])
         return nil if cursor == name_start
 
         name = text[name_start...cursor].downcase
-        cursor += 1 while cursor < text.length && text[cursor].match?(/\s/)
+        cursor += 1 while cursor < text.length && WHITESPACE.include?(text[cursor])
 
         value = ""
         if text[cursor] == "="
           cursor += 1
-          cursor += 1 while cursor < text.length && text[cursor].match?(/\s/)
+          cursor += 1 while cursor < text.length && WHITESPACE.include?(text[cursor])
           quote = text[cursor]
           if quote == "\"" || quote == "'"
             cursor += 1
@@ -268,7 +280,7 @@ module Pulpmesh
             cursor += 1
           else
             value_start = cursor
-            cursor += 1 while cursor < text.length && !text[cursor].match?(/[\s>]/)
+            cursor += 1 while cursor < text.length && !WHITESPACE.include?(text[cursor]) && text[cursor] != ">"
             value = text[value_start...cursor]
           end
         end
@@ -469,7 +481,7 @@ module Pulpmesh
     def self.boundary?(char)
       return true if char.nil?
 
-      !char.match?(/[a-zA-Z0-9]/)
+      !ALPHANUMERIC.include?(char)
     end
 
     # One document. Holds the ids already handed out, so a repeated heading gets

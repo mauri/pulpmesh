@@ -29,6 +29,7 @@ ok  absolute link gets nofollow => "<p><a href=\"https://example.com\" rel=\"nof
 ok  relative link left alone => "<p><a href=\"other.html\">in</a></p>\n"
 ok  parens in a url are balanced, not cut at the first one => "<p><a href=\"https://en.wikipedia.org/wiki/Ruby_(programming_language)\" rel=\"nofollow\">Ruby</a></p>\n"
 ok  an unbalanced destination is literal text => "<p>[x](a(b)</p>\n"
+ok  a run of unclosed brackets is literal text => "<p>[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[</p>\n"
 ok  a title is its own attribute => "<p><a href=\"u\" title=\"t\">x</a></p>\n"
 ok  a single-quoted title too => "<p><a href=\"u\" title=\"t\">x</a></p>\n"
 ok  a quote in an attribute cannot end it => "<p><a href=\"u\" title=\"it&#39;s\">a</a></p>\n"
