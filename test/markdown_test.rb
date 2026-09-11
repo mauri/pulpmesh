@@ -13,7 +13,12 @@ Harness.check("hash without space is not a title", MD.extract_title("#T\n")[0], 
 Harness.check("paragraph", MD.render("Hello."), "<p>Hello.</p>\n")
 Harness.check("leading blank line kept", MD.render("\nHello."), "\n<p>Hello.</p>\n")
 Harness.check("two paragraphs", MD.render("One.\n\nTwo."), "<p>One.</p>\n\n<p>Two.</p>\n")
-Harness.check("soft break kept", MD.render("a\nb"), "<p>a\nb</p>\n")
+Harness.check("a newline in a paragraph is a line break", MD.render("a\nb"),
+              "<p>a<br />\nb</p>\n")
+Harness.check("a newline in raw html is not", MD.render("<b>a\nb</b>"),
+              "<p><b>a\nb</b></p>\n")
+Harness.check("a newline in a code span is not", MD.render("`a\nb`"),
+              "<p><code>a\nb</code></p>\n")
 Harness.check("empty input", MD.render(""), "")
 
 Harness.check("heading with id", MD.render("#### The workaround"),
@@ -41,7 +46,7 @@ Harness.check("markup in an underlined heading", MD.render("*Title*\n===\n"),
 # Only a line that starts a block can be underlined. A paragraph already
 # holding a line keeps taking them.
 Harness.check("a second line is not underlined", MD.render("One\nTwo\n===\n"),
-              "<p>One\nTwo\n===</p>\n")
+              "<p>One<br />\nTwo<br />\n===</p>\n")
 Harness.check("an indented underline is not one", MD.render("Title\n  ---\n"),
               "<p>Title</p>\n\n<hr />\n")
 Harness.check("an underline with nothing over it is text", MD.render("\n===\n"),
@@ -53,7 +58,7 @@ Harness.check("unordered list", MD.render("- one\n- two"),
 Harness.check("ordered list", MD.render("1. one\n2. two"),
               "<ol>\n  <li>one</li>\n  <li>two</li>\n</ol>\n")
 Harness.check("blockquote", MD.render("> quoted\n> more"),
-              "<blockquote>\n  <p>quoted\nmore</p>\n</blockquote>\n")
+              "<blockquote>\n  <p>quoted<br />\nmore</p>\n</blockquote>\n")
 
 Harness.check("inline code", MD.render("a `c` b"), "<p>a <code>c</code> b</p>\n")
 Harness.check("code span is literal", MD.render("a `x < y & z` b"),

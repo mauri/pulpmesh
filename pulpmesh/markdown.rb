@@ -166,6 +166,12 @@ module Pulpmesh
                when "&" then "&amp;"
                when "<" then "&lt;"
                when ">" then "&gt;"
+               # A newline inside a block is a line break, which is what makes
+               # this GitHub-flavored rather than plain markdown. Not inside a
+               # raw html element though: kramdown left that content's line
+               # endings alone, and an open tag on the stack is what says we are
+               # in one.
+               when "\n" then open_tags.empty? ? "<br />\n" : "\n"
                else char
                end
         index += 1
