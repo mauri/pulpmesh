@@ -90,16 +90,14 @@ module Pulpmesh
     end
 
     # The stylesheets and the svgs are compiled-in constants rather than files
-    # on disk, and syntax.css is a snapshot of one Rouge theme, so a source
-    # folder asking for a different theme gets the snapshot plus a warning.
+    # on disk. syntax.css is a snapshot of one Rouge theme, and it is the only
+    # one: a site that wants different colours overrides them in `_styles.css`,
+    # which is linked last.
     def write_assets
       write("blog.css", Assets::BLOG)
       write("syntax.css", Assets::SYNTAX)
       write("pulpmesh-logo.svg", Assets::PULPMESH_LOGO)
       write("favicon.svg", Assets::FAVICON) unless config.favicon
-      unless config.syntax_theme == Config::DEFAULT_SYNTAX_THEME
-        warnings << "syntax_theme #{config.syntax_theme} is not available: using #{Config::DEFAULT_SYNTAX_THEME}"
-      end
       FSUtil.copy_file(config.stylesheet_path, File.join(output, Config::STYLESHEET)) if config.styles?
     end
 

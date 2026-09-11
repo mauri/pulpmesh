@@ -96,11 +96,9 @@ builds.
 | `description` | tagline, also the meta description |
 | `base_url` | absolute site url. Without it, `rss.xml` and the `og:`/`twitter:` url tags are skipped and the build warns |
 | `keywords` | meta keywords |
-| `layout` | sets `class="layout-…"` on the index body |
 | `with_styles` | set `false` to ignore `_styles.css` |
 | `favicon` | path to a favicon, replacing the bundled `favicon.svg` |
 | `card_image` | absolute url for the og:image / twitter:image card |
-| `syntax_theme` | any Rouge theme name (default `base16.monokai.dark`) |
 | `footer` | html for the footer line, replacing the bundled wordmark |
 
 ## Styling
@@ -108,7 +106,8 @@ builds.
 Pages link three stylesheets, in order:
 
 1. `blog.css` — bundled base styles and the utility classes the templates use.
-2. `syntax.css` — generated at build time from the configured syntax theme.
+2. `syntax.css` — one snapshotted Rouge theme, `base16.monokai.dark`. There is
+   no theme setting; a site that wants other colours overrides these rules.
 3. `_styles.css` — copied from the source folder, if present. This is where a
    site's own theme goes; it is loaded last and wins.
 

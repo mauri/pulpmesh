@@ -10,7 +10,6 @@ module Pulpmesh
     DEFAULT_KEYWORDS = "blog, blogging, write, writing, hackers, developers, terminal"
     DEFAULT_FOOTER = %(Published with <a href="https://pulpme.sh">) +
                      %(<img src="pulpmesh-logo.svg" alt="pulpmesh" class="footer-logo"></a>)
-    DEFAULT_SYNTAX_THEME = "base16.monokai.dark"
 
     attr_reader :source, :data, :intro_html
 
@@ -38,16 +37,8 @@ module Pulpmesh
       data["keywords"] || DEFAULT_KEYWORDS
     end
 
-    def layout
-      data["layout"] || "default"
-    end
-
     def footer
       data.fetch("footer", DEFAULT_FOOTER)
-    end
-
-    def syntax_theme
-      data["syntax_theme"] || DEFAULT_SYNTAX_THEME
     end
 
     def favicon

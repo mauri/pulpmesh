@@ -146,7 +146,7 @@ _buf = ::String.new; _buf << '<!doctype html>
  _buf << '        <link rel="stylesheet" href="_styles.css">
 '.freeze;         end 
  _buf << '    </head>
-    <body id="blog" class="layout-'.freeze; _buf << ( h config.layout ).to_s; _buf << '">
+    <body id="blog">
         <header class="text-center">
             <h1 class="text-2xl font-bold mt-2">'.freeze; _buf << ( h config.title ).to_s; _buf << '</h1>
             <span>'.freeze; _buf << ( h config.description ).to_s; _buf << '</span>
