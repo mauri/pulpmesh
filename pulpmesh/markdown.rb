@@ -20,6 +20,11 @@ module Pulpmesh
     BLOCK_START = /\A(?:\#{1,6}[ \t]|```|~~~|[ \t]{0,3}>|[ \t]{0,3}[-*+][ \t]|[ \t]{0,3}\d+\.[ \t])/
     ABSOLUTE = %r{\A[a-z][a-z0-9+.-]*://}i
 
+    # The bounds of a decodable numeric character reference.
+    MAX_CODE_POINT = 0x10FFFF
+    SURROGATE_FIRST = 0xD800
+    SURROGATE_LAST = 0xDFFF
+
     # The optional `"title"` trailing a link or image destination.
     TITLED_DOUBLE = /\A(.*?)[ \t]+"(.*)"\z/
     TITLED_SINGLE = /\A(.*?)[ \t]+'(.*)'\z/
@@ -292,6 +297,11 @@ module Pulpmesh
         # are NUL-terminated at the C boundary, so an embedded NUL would
         # truncate the document.
         return nil if code.nil? || code.zero?
+
+        # Past the end of unicode, or one half of a surrogate pair, names no
+        # character. `pack("U")` would raise or build a byte sequence that
+        # raises the next time the string is read, so these stay literal too.
+        return nil if code > MAX_CODE_POINT || (code >= SURROGATE_FIRST && code <= SURROGATE_LAST)
 
         # `pack("U")` rather than `chr("UTF-8")`: spinel supports Integer#chr
         # only without an encoding argument, which limits it to ascii.

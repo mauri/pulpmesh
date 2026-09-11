@@ -132,3 +132,10 @@ Harness.check("non-ascii numeric entity", MD.render("a &#233; b"), "<p>a \u00E9 
 # Left literal on purpose: spinel's strings are NUL-terminated at the C
 # boundary, so decoding this would truncate the document.
 Harness.check("nul entity is refused", MD.render("a &#0; b"), "<p>a &amp;#0; b</p>\n")
+Harness.check("entity past the end of unicode is refused", MD.render("&#x110000;"),
+              "<p>&amp;#x110000;</p>\n")
+Harness.check("surrogate entity is refused", MD.render("&#xD800;"), "<p>&amp;#xD800;</p>\n")
+Harness.check("the last code point still decodes",
+              Harness.ascii(MD.render("&#x10FFFF;")), "<p>\\u10FFFF</p>\n")
+Harness.check("a huge decimal entity is refused", MD.render("&#9999999999;"),
+              "<p>&amp;#9999999999;</p>\n")
