@@ -6,13 +6,12 @@ excuse to dive in [spinel](https://github.com/matz/spinel) development.
 ```sh
 spin build
 ./build/bin/pulpmesh build ~/Sites/my-blog --out=/tmp/site
-./build/bin/pulpmesh serve ~/Sites/my-blog --port=4000
 ```
 ## Description
 
 Write your blog in folder of markdown and generate html out.There is no site scaffold, no theme system and no config file to create: the
 markdown folder *is* the project. Output is static html with two small
-stylesheets — no javascript, no build step at serve time.
+stylesheets — no javascript, and nothing to run once the files are built.
 
 The binary is standalone: the stylesheets and the compiled templates are
 constants inside it, so there is no directory of Ruby files to read at
@@ -22,13 +21,18 @@ runtime.
 
 ```
 pulpmesh build [SOURCE] [options]   render SOURCE into html
-pulpmesh serve [SOURCE] [options]   build, then serve it on localhost
 
 --out=DIR        output directory (default: SOURCE/_site)
 --base-url=URL   absolute site url, overriding base_url in _pulpmesh.md
---port=N         port for `serve` (default: 4000)
 -v, --version
 -h, --help
+```
+
+There is no preview server. The output is plain files, so any static file
+server will do:
+
+```sh
+python3 -m http.server -d _site 4000
 ```
 
 `SOURCE` defaults to the current directory. The output directory is wiped and
@@ -124,15 +128,14 @@ point it at untrusted or third-party markdown.
 ## What's inside
 
 Ahead-of-time compilation rules out the usual Ruby static-site dependencies —
-kramdown, Rouge, ERB, WEBrick — since none of them can compile under spinel.
-Each is reimplemented here instead:
+kramdown, Rouge, ERB — since none of them can compile under spinel. Each is
+reimplemented here instead:
 
 | dependency | replaced by |
 | --- | --- |
 | kramdown | `pulpmesh/markdown.rb` — the markdown parser this project uses, not CommonMark, with kramdown-compatible raw-html and entity handling |
 | Rouge | `pulpmesh/highlight.rb` — hand-rolled `sh` and `ruby` tokenizers emitting Rouge's class names |
 | ERB | `templates/*.erb` compiled ahead of time by Erubi into `pulpmesh/templates.rb` |
-| WEBrick | `pulpmesh/server.rb` on `TCPServer` |
 | CGI | `pulpmesh/escape.rb` |
 | FileUtils | `pulpmesh/fsutil.rb` |
 | Date | ISO-only parsing in `pulpmesh/post.rb` |

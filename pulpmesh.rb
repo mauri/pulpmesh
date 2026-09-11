@@ -12,7 +12,6 @@ require_relative "pulpmesh/config"
 require_relative "pulpmesh/post"
 require_relative "pulpmesh/site"
 require_relative "pulpmesh/templates"
-require_relative "pulpmesh/server"
 require_relative "pulpmesh/cli"
 
 module Pulpmesh

@@ -9,12 +9,10 @@ module Pulpmesh
 
       commands:
         build [SOURCE]     render SOURCE into html (SOURCE defaults to the current directory)
-        serve [SOURCE]     build, then serve the result on localhost
 
       options:
             --out=DIR      output directory (default: SOURCE/_site)
             --base-url=URL absolute site url, overriding base_url in _pulpmesh.md
-            --port=N       port for `serve` (default: 4000)
         -v, --version      print the version
         -h, --help         print this message
     TEXT
@@ -24,7 +22,7 @@ module Pulpmesh
     end
 
     def run(argv)
-      options = { port: 4000 }
+      options = {}
       args = argv.dup
       build_parser(options).parse!(args)
 
@@ -38,7 +36,6 @@ module Pulpmesh
 
       case command
       when "build" then build(args.shift, options) && 0
-      when "serve" then serve(args.shift, options)
       else
         warn "unknown command: #{command}\n\n#{USAGE}"
         1
@@ -58,7 +55,6 @@ module Pulpmesh
       parser.banner = USAGE
       parser.on("--out=DIR", "output directory") { |value| options[:out] = value }
       parser.on("--base-url=URL", "absolute site url") { |value| options[:base_url] = value }
-      parser.on("--port=N", "port for serve") { |value| options[:port] = value.to_i }
       parser.on("-v", "--version") do
         puts Pulpmesh::VERSION
         exit 0
@@ -76,12 +72,6 @@ module Pulpmesh
       site.warnings.each { |warning| warn "pulpmesh: #{warning}" }
       puts "built #{site.posts.size} #{site.posts.size == 1 ? "post" : "posts"} into #{site.output}"
       site
-    end
-
-    def serve(source, options)
-      site = build(source, options)
-      Server.start(site.output, port: options[:port])
-      0
     end
   end
 end
