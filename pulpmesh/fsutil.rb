@@ -14,6 +14,14 @@ module Pulpmesh
     end
 
     def self.rm_rf(path)
+      # A symlink is unlinked, never followed. Dir.exist? answers true for a
+      # symlink pointing at a directory, so recursing on one would delete the
+      # files it points at and leave the link itself behind.
+      if File.symlink?(path)
+        File.delete(path)
+        return
+      end
+
       return unless Dir.exist?(path) || File.exist?(path)
 
       unless Dir.exist?(path)
