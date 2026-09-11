@@ -83,6 +83,26 @@ Harness.check("an unbalanced destination is literal text", MD.render("[x](a(b)")
 # each, which made a paragraph of them take time squared in its length.
 Harness.check("a run of unclosed brackets is literal text", MD.render("[" * 400),
               "<p>#{"[" * 400}</p>\n")
+# A destination naming a scheme that is not on the list makes no link at all,
+# so the markdown stays on the page as the text it was written as.
+Harness.check("a javascript url is not a link", MD.render("[click](javascript:alert(1))"),
+              "<p>[click](javascript:alert(1))</p>\n")
+Harness.check("nor in any casing", MD.render("[click](JaVaScRiPt:alert(1))"),
+              "<p>[click](JaVaScRiPt:alert(1))</p>\n")
+# A browser drops the tab before reading the scheme, so the check has to too.
+Harness.check("nor with a tab hiding in it", MD.render("[click](java\tscript:alert(1))"),
+              "<p>[click](java\tscript:alert(1))</p>\n")
+Harness.check("a data url is not a link", MD.render("[x](data:text/html,hi)"),
+              "<p>[x](data:text/html,hi)</p>\n")
+Harness.check("nor an image source", MD.render("![i](javascript:alert(1))"),
+              "<p>![i](javascript:alert(1))</p>\n")
+Harness.check("mailto is fine", MD.render("[mail](mailto:a@b.c)"),
+              "<p><a href=\"mailto:a@b.c\">mail</a></p>\n")
+Harness.check("a relative url has no scheme to check", MD.render("[up](../a.html)"),
+              "<p><a href=\"../a.html\">up</a></p>\n")
+Harness.check("an anchor has none either", MD.render("[here](#x)"),
+              "<p><a href=\"#x\">here</a></p>\n")
+
 Harness.check("a title is its own attribute", MD.render(%([x](u "t"))),
               "<p><a href=\"u\" title=\"t\">x</a></p>\n")
 Harness.check("a single-quoted title too", MD.render("[x](u 't')"),

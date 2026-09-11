@@ -30,6 +30,17 @@ module Pulpmesh
     BLOCK_START = /\A(?:\#{1,6}[ \t]|```|~~~|[ \t]{0,3}>|[ \t]{0,3}[-*+][ \t]|[ \t]{0,3}\d+\.[ \t])/
     ABSOLUTE = %r{\A[a-z][a-z0-9+.-]*://}i
 
+    # The scheme a url names, if it names one at all.
+    SCHEME = /\A([a-zA-Z][a-zA-Z0-9+.-]*):/
+    # Schemes a link or an image may use. A url with no scheme is relative and
+    # always fine; one naming anything else — `javascript:` above all — is not a
+    # url this will emit.
+    SAFE_SCHEMES = %w[http https mailto].freeze
+    # Whitespace and control characters, which a browser drops before it reads
+    # the scheme. Left in while checking, `java<tab>script:` would pass as a
+    # relative path and then run as `javascript:`.
+    IGNORED_IN_SCHEME = /[[:space:]\x00-\x1F\x7F]/
+
     # The optional `"title"` trailing a link or image destination.
     TITLED_DOUBLE = /\A(.*?)[ \t]+"(.*)"\z/
     TITLED_SINGLE = /\A(.*?)[ \t]+'(.*)'\z/
@@ -276,7 +287,7 @@ module Pulpmesh
       return nil unless label_end && text[label_end + 1] == "("
 
       parsed = destination(text, label_end + 1)
-      return nil unless parsed
+      return nil unless parsed && safe_url?(parsed[0])
 
       href = parsed[0]
       title = parsed[1] ? " title=\"#{Escape.escape_html(parsed[1])}\"" : ""
@@ -295,12 +306,21 @@ module Pulpmesh
       return nil unless label_end && text[label_end + 1] == "("
 
       parsed = destination(text, label_end + 1)
-      return nil unless parsed
+      return nil unless parsed && safe_url?(parsed[0])
 
       alt = text[(start + 2)...label_end]
       title = parsed[1] ? " title=\"#{Escape.escape_html(parsed[1])}\"" : ""
       ["<img src=\"#{Escape.escape_html(parsed[0])}\" alt=\"#{Escape.escape_html(alt)}\"#{title} />",
        parsed[2]]
+    end
+
+    # Whether a destination is one to emit. A url with no scheme is relative and
+    # always fine; one that names a scheme has to name a known-harmless one. A
+    # destination that fails here makes no link at all, so the markdown stays on
+    # the page as the text it was written as.
+    def self.safe_url?(url)
+      match = SCHEME.match(url.gsub(IGNORED_IN_SCHEME, ""))
+      match.nil? || SAFE_SCHEMES.include?(match[1].downcase)
     end
 
     # The `(href "title")` half of a link or an image, starting at the `(`.

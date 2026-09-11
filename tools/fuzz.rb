@@ -24,6 +24,9 @@ ROOT = File.expand_path("..", __dir__)
 # author wrote, and decodes an entity reference, where pulpmesh escapes both on
 # purpose. So the corpus below contains neither. A bare `<` and a bare `&` do
 # appear, since both renderers escape those the same way.
+#
+# The third is a url naming a scheme other than http, https or mailto, which
+# kramdown links and pulpmesh leaves as text. The corpus uses none.
 NOFOLLOW = ' rel="nofollow"'
 
 INLINE = [

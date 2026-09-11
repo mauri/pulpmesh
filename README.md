@@ -138,6 +138,11 @@ Markdown is rendered with GitHub-flavored syntax and `rel="nofollow"` on
 outbound links. `![alt](pic.png "title")` becomes an `<img>`; images are not
 copied into the output directory, so the path has to resolve on its own.
 
+A link or an image may point at `http`, `https` or `mailto`, or at a relative
+path, an absolute one or an anchor. A destination naming any other scheme —
+`javascript:` and `data:` are the ones that matter — makes no link at all, and
+the line stays on the page as the text it was written as.
+
 A newline inside a paragraph, a list item or a blockquote is a line break, and
 prose is typeset: quotes curl, `--` becomes an en dash, `---` an em dash and
 `...` an ellipsis. None of that happens inside a code span or a fenced block,
@@ -166,6 +171,12 @@ than the `<script>`. There is no passthrough and no option to turn one on.
 So there is nothing to sanitise. Every character an author writes is escaped on
 its way out, which leaves the markup the renderer generated as the only markup
 on the page. A `<` that opened no tag was always literal; now every `<` is.
+
+The one other way markdown can name something a browser will execute is a
+`javascript:` url, and those make no link either, so nothing a post says turns
+into script. What this does not do is decide whether the pages are fit to
+publish: a link still goes where it says, and prose is still whatever was
+written.
 
 An entity reference is text on the same terms: `&amp;` is the five characters
 you typed and `&mdash;` the eight, not an ampersand and not a dash. Write the
