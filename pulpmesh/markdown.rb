@@ -19,6 +19,10 @@ module Pulpmesh
     BLOCK_START = /\A(?:\#{1,6}[ \t]|```|~~~|[ \t]{0,3}>|[ \t]{0,3}[-*+][ \t]|[ \t]{0,3}\d+\.[ \t])/
     ABSOLUTE = %r{\A[a-z][a-z0-9+.-]*://}i
 
+    # The optional `"title"` trailing a link or image destination.
+    TITLED_DOUBLE = /\A(.*?)[ \t]+"(.*)"\z/
+    TITLED_SINGLE = /\A(.*?)[ \t]+'(.*)'\z/
+
     # Elements that never take a closing tag; they are emitted self-closed and
     # never pushed onto the open-tag stack.
     VOID = %w[area base br col embed hr img input link meta param source track wbr].freeze
@@ -316,19 +320,48 @@ module Pulpmesh
       text.gsub("&lt;", "<").gsub("&gt;", ">").gsub("&amp;", "&")
     end
 
-    # `[label](href)`. A `[` with no matching `](...)` is literal text, which is
-    # what a footnote marker like `[1]` relies on.
+    # `[label](href)` or `[label](href "title")`. A `[` with no matching `](...)`
+    # is literal text, which is what a footnote marker like `[1]` relies on.
     def self.link(text, start, open_tags)
       label_end = matching_bracket(text, start)
       return nil unless label_end && text[label_end + 1] == "("
 
-      href_end = text.index(")", label_end + 2)
-      return nil unless href_end
+      parsed = destination(text, label_end + 1)
+      return nil unless parsed
 
+      href = parsed[0]
+      title = parsed[1] ? " title=\"#{escape_attribute(parsed[1])}\"" : ""
       label = text[(start + 1)...label_end]
-      href = text[(label_end + 2)...href_end].strip
       rel = href.match?(ABSOLUTE) ? " rel=\"nofollow\"" : ""
-      ["<a href=\"#{escape_attribute(href)}\"#{rel}>#{scan(label, open_tags)}</a>", href_end + 1]
+      ["<a href=\"#{escape_attribute(href)}\"#{rel}#{title}>#{scan(label, open_tags)}</a>", parsed[2]]
+    end
+
+    # The `(href "title")` half of a link or an image, starting at the `(`.
+    # Nested pairs are counted rather than stopping at the first `)`, so a url
+    # like `…/Ruby_(programming_language)` survives intact.
+    # Returns [href, title_or_nil, index_after_paren] or nil.
+    def self.destination(text, start)
+      depth = 0
+      cursor = start
+      while cursor < text.length
+        char = text[cursor]
+        if char == "("
+          depth += 1
+        elsif char == ")"
+          depth -= 1
+          break if depth.zero?
+        end
+        cursor += 1
+      end
+      return nil unless depth.zero?
+
+      body = text[(start + 1)...cursor].strip
+      # Two patterns rather than one with a backreference, which spinel does not
+      # compile.
+      match = TITLED_DOUBLE.match(body) || TITLED_SINGLE.match(body)
+      return [body, nil, cursor + 1] unless match
+
+      [match[1].strip, match[2], cursor + 1]
     end
 
     # Bracket matching rather than a regex, so a label may contain brackets.

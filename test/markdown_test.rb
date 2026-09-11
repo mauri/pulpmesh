@@ -51,6 +51,16 @@ Harness.check("absolute link gets nofollow", MD.render("[out](https://example.co
               "<p><a href=\"https://example.com\" rel=\"nofollow\">out</a></p>\n")
 Harness.check("relative link left alone", MD.render("[in](other.html)"),
               "<p><a href=\"other.html\">in</a></p>\n")
+Harness.check("parens in a url are balanced, not cut at the first one",
+              MD.render("[Ruby](https://en.wikipedia.org/wiki/Ruby_(programming_language))"),
+              "<p><a href=\"https://en.wikipedia.org/wiki/Ruby_(programming_language)\" " \
+              "rel=\"nofollow\">Ruby</a></p>\n")
+Harness.check("an unbalanced destination is literal text", MD.render("[x](a(b)"),
+              "<p>[x](a(b)</p>\n")
+Harness.check("a title is its own attribute", MD.render(%([x](u "t"))),
+              "<p><a href=\"u\" title=\"t\">x</a></p>\n")
+Harness.check("a single-quoted title too", MD.render("[x](u 't')"),
+              "<p><a href=\"u\" title=\"t\">x</a></p>\n")
 Harness.check("bare bracket is literal", MD.render("[1] a footnote marker"),
               "<p>[1] a footnote marker</p>\n")
 
