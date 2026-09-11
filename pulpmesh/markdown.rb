@@ -244,6 +244,12 @@ module Pulpmesh
     # Reads attributes up to the closing `>`, normalising each to
     # `name="value"`. Returns [rendered, index_after_gt, self_closed] or nil if
     # the tag never closes.
+    #
+    # Normalising is not sanitising. Nothing here drops a tag, an attribute or a
+    # url: `onerror=alert(1)` comes out as a tidy `onerror="alert(1)"` and works.
+    # Raw html is passed through by design, on the assumption that the markdown
+    # was written by whoever owns the blog. Do not reach for this on input from
+    # anyone else.
     def self.attributes(text, start)
       out = ::String.new
       cursor = start

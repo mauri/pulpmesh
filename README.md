@@ -9,9 +9,11 @@ spin build
 ```
 ## Description
 
-Write your blog in folder of markdown and generate html out.There is no site scaffold, no theme system and no config file to create: the
-markdown folder *is* the project. Output is static html with two small
-stylesheets — no javascript, and nothing to run once the files are built.
+Write your blog in a folder of markdown and generate html out. There is no site
+scaffold and no theme system: the markdown folder *is* the project. A folder of
+`.md` files and nothing else builds, and `_pulpmesh.md` is there when you want
+to set a title or a base url. Output is static html with two small stylesheets
+— no javascript, and nothing to run once the files are built.
 
 The binary is standalone: the stylesheets and the compiled templates are
 constants inside it, so there is no directory of Ruby files to read at
@@ -116,6 +118,22 @@ black in dark, links in the brand green. The pixel wordmark ships as
 `pulpmesh-logo.svg` and is what the default footer line ends with;
 `favicon.svg` is the same mark cut down to `pm`.
 
+### Syntax highlighting
+
+**Two languages are highlighted: shell and Ruby.** A fenced block tagged `sh`,
+`bash`, `shell`, `zsh` or `console` goes through the shell tokenizer, and one
+tagged `ruby` or `rb` through the Ruby one. That is the whole list.
+
+Any other tag — `python`, `json`, `yaml`, `go` — still renders, as escaped
+plain text in `<pre><code class="language-…">`, with no colouring. An untagged
+block is plain `<pre><code>`. Nothing warns about this, and nothing is lost;
+the code is simply not coloured.
+
+The two tokenizers emit Rouge's class names so the snapshotted `syntax.css`
+colours them, but they are not Rouge's lexers. They recognise the same kinds
+of token and label them the same way; where Rouge splits a run differently the
+colours match and the markup does not.
+
 Markdown is rendered with GitHub-flavored syntax, straight (not typographic)
 quotes, and `rel="nofollow"` on outbound links. `![alt](pic.png "title")`
 becomes an `<img>`; images are not copied into the output directory, so the
@@ -137,6 +155,12 @@ rendered as raw, unescaped html by design — pulpmesh assumes the markdown
 source is written by a trusted author, not submitted by end users. Do not
 point it at untrusted or third-party markdown.
 
+Normalising is not sanitising. Nothing is filtered: `<script>` passes through,
+and `<img src=x onerror=alert(1)>` comes out as a well-formed tag that still
+runs. pulpmesh builds one person's blog from that person's own files. It is
+not a renderer for markdown that strangers wrote, and the single-author
+assumption is what makes the rest of the design reasonable.
+
 ## What's inside
 
 Ahead-of-time compilation rules out the usual Ruby static-site dependencies —
@@ -146,7 +170,7 @@ reimplemented here instead:
 | dependency | replaced by |
 | --- | --- |
 | kramdown | `pulpmesh/markdown.rb` — the markdown parser this project uses, not CommonMark, with kramdown-compatible raw-html and entity handling |
-| Rouge | `pulpmesh/highlight.rb` — hand-rolled `sh` and `ruby` tokenizers emitting Rouge's class names |
+| Rouge | `pulpmesh/highlight.rb` — hand-rolled `sh` and `ruby` tokenizers, and only those two, emitting Rouge's class names |
 | ERB | `templates/*.erb` compiled ahead of time by Erubi into `pulpmesh/templates.rb` |
 | CGI | `pulpmesh/escape.rb` |
 | FileUtils | `pulpmesh/fsutil.rb` |
@@ -157,7 +181,7 @@ reimplemented here instead:
 ```sh
 rake generate   # regenerate templates.rb, assets.rb and entities.rb
 spin build
-spin test       # seven snapshot programs, 148 checks
+spin test       # nine snapshot programs, 202 checks
 rake check      # fail if the committed codegen artifacts are stale
 rake parity     # re-run every test under CRuby against the same snapshots
 ```
