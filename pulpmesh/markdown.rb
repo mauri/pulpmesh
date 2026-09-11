@@ -3,11 +3,12 @@
 module Pulpmesh
   # The markdown the blog actually uses, rendered to the same html kramdown
   # produced: ATX headings with generated ids, fenced code, lists, blockquotes,
-  # horizontal rules and paragraphs, over inline code, links, strong and em.
+  # horizontal rules and paragraphs, over inline code, links, images, strong
+  # and em.
   #
-  # Not CommonMark. Reference links, images, tables, setext headings, html
-  # blocks and footnotes are not handled; a line using one is emitted as the
-  # paragraph text it looks like.
+  # Not CommonMark. Reference links, tables, setext headings and footnotes are
+  # not handled; a line using one is emitted as the paragraph text it looks
+  # like.
   module Markdown
     ATX = /\A(\#{1,6})[ \t]+(.*?)[ \t]*\#*[ \t]*\z/
     FENCE = /\A(?:```|~~~)[ \t]*([^\s`]*)[ \t]*\z/
@@ -95,6 +96,13 @@ module Pulpmesh
 
         if char == "`"
           finish = code_span(text, index)
+          if finish
+            out << finish[0]
+            index = finish[1]
+            handled = true
+          end
+        elsif char == "!"
+          finish = image(text, index)
           if finish
             out << finish[0]
             index = finish[1]
@@ -334,6 +342,24 @@ module Pulpmesh
       label = text[(start + 1)...label_end]
       rel = href.match?(ABSOLUTE) ? " rel=\"nofollow\"" : ""
       ["<a href=\"#{escape_attribute(href)}\"#{rel}#{title}>#{scan(label, open_tags)}</a>", parsed[2]]
+    end
+
+    # `![alt](src)`. The label becomes the alt text literally: no inline markup
+    # is recognised inside it, so `![a *b*](p.png)` keeps its asterisks, as
+    # kramdown's did. A `!` that does not begin one is literal text.
+    def self.image(text, start)
+      return nil unless text[start + 1] == "["
+
+      label_end = matching_bracket(text, start + 1)
+      return nil unless label_end && text[label_end + 1] == "("
+
+      parsed = destination(text, label_end + 1)
+      return nil unless parsed
+
+      alt = text[(start + 2)...label_end]
+      title = parsed[1] ? " title=\"#{escape_attribute(parsed[1])}\"" : ""
+      ["<img src=\"#{escape_attribute(parsed[0])}\" alt=\"#{escape_attribute(alt)}\"#{title} />",
+       parsed[2]]
     end
 
     # The `(href "title")` half of a link or an image, starting at the `(`.

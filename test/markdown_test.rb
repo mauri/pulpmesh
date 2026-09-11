@@ -61,6 +61,25 @@ Harness.check("a title is its own attribute", MD.render(%([x](u "t"))),
               "<p><a href=\"u\" title=\"t\">x</a></p>\n")
 Harness.check("a single-quoted title too", MD.render("[x](u 't')"),
               "<p><a href=\"u\" title=\"t\">x</a></p>\n")
+
+Harness.check("image", MD.render("![alt](pic.png)"),
+              "<p><img src=\"pic.png\" alt=\"alt\" /></p>\n")
+Harness.check("image with an empty alt", MD.render("![](pic.png)"),
+              "<p><img src=\"pic.png\" alt=\"\" /></p>\n")
+Harness.check("image alt is literal, not markup", MD.render("![a *b*](pic.png)"),
+              "<p><img src=\"pic.png\" alt=\"a *b*\" /></p>\n")
+Harness.check("image alt is escaped", MD.render(%(![a "b" & c](p.png))),
+              "<p><img src=\"p.png\" alt=\"a &quot;b&quot; &amp; c\" /></p>\n")
+Harness.check("image with a title", MD.render(%(![a](p.png "t"))),
+              "<p><img src=\"p.png\" alt=\"a\" title=\"t\" /></p>\n")
+Harness.check("image inside a link", MD.render("[![a](p.png)](http://x)"),
+              "<p><a href=\"http://x\" rel=\"nofollow\"><img src=\"p.png\" alt=\"a\" /></a></p>\n")
+Harness.check("an image gets no nofollow", MD.render("![a](https://ex.com/p.png)"),
+              "<p><img src=\"https://ex.com/p.png\" alt=\"a\" /></p>\n")
+Harness.check("a bang that starts no image is literal", MD.render("!not an image"),
+              "<p>!not an image</p>\n")
+Harness.check("a bang before a link is literal", MD.render("!![a](p.png)"),
+              "<p>!<img src=\"p.png\" alt=\"a\" /></p>\n")
 Harness.check("bare bracket is literal", MD.render("[1] a footnote marker"),
               "<p>[1] a footnote marker</p>\n")
 

@@ -118,7 +118,12 @@ black in dark, links in the brand green. The pixel wordmark ships as
 `favicon.svg` is the same mark cut down to `pm`.
 
 Markdown is rendered with GitHub-flavored syntax, straight (not typographic)
-quotes, and `rel="nofollow"` on outbound links.
+quotes, and `rel="nofollow"` on outbound links. `![alt](pic.png "title")`
+becomes an `<img>`; images are not copied into the output directory, so the
+path has to resolve on its own.
+
+Reference links, tables, setext headings and footnotes are not handled. A line
+using one comes out as the paragraph text it looks like.
 
 Raw html passes through normalised — an inline tag is emitted with its name
 lowercased, attributes quoted and escaped, and void elements self-closed; a
