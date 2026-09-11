@@ -2,18 +2,20 @@
 
 module Pulpmesh
   # The markdown the blog actually uses, rendered to the same html kramdown
-  # produced: ATX headings with generated ids, fenced code, lists, blockquotes,
-  # horizontal rules and paragraphs, over inline code, links, images, strong
-  # and em.
+  # produced: ATX and setext headings with generated ids, fenced code, lists,
+  # blockquotes, horizontal rules and paragraphs, over inline code, links,
+  # images, strong and em.
   #
-  # Not CommonMark. Reference links, tables, setext headings and footnotes are
-  # not handled; a line using one is emitted as the paragraph text it looks
-  # like.
+  # Not CommonMark. Reference links, tables and footnotes are not handled; a
+  # line using one is emitted as the paragraph text it looks like.
   module Markdown
     ATX = /\A(\#{1,6})[ \t]+(.*?)[ \t]*\#*[ \t]*\z/
     FENCE = /\A(?:```|~~~)[ \t]*([^\s`]*)[ \t]*\z/
     FENCE_END = /\A(?:```|~~~)[ \t]*\z/
     RULE = /\A[ \t]{0,3}(?:(?:-[ \t]*){3,}|(?:\*[ \t]*){3,}|(?:_[ \t]*){3,})\z/
+    # The line under a setext heading. Its first character picks the level, and
+    # the rest may mix the two, as kramdown's own pattern did.
+    SETEXT_UNDERLINE = /\A([-=])[-=]*[ \t]*\z/
     QUOTE = /\A[ \t]{0,3}>[ \t]?/
     BULLET = /\A[ \t]{0,3}[-*+][ \t]+(.*)\z/
     ORDERED = /\A[ \t]{0,3}\d+\.[ \t]+(.*)\z/
@@ -538,11 +540,26 @@ module Pulpmesh
             index = list(blocks, lines, index, "ul", BULLET)
           elsif ORDERED.match(line)
             index = list(blocks, lines, index, "ol", ORDERED)
+          elsif (level = setext_level(lines, index))
+            blocks << heading(level, line.strip)
+            index += 2
           else
             index = paragraph(blocks, lines, index)
           end
         end
         blocks
+      end
+
+      # A line underlined with `=` or `-` is a heading, the character picking
+      # the level. Only one line can be underlined, and only where a block
+      # starts: a paragraph that has already taken a line goes on taking them,
+      # so `One\nTwo\n===` is three lines of text rather than a heading.
+      def setext_level(lines, index)
+        line = lines[index]
+        return nil if line.empty? || WHITESPACE.include?(line[0])
+        return nil unless (match = SETEXT_UNDERLINE.match(lines[index + 1].to_s))
+
+        match[1] == "=" ? 1 : 2
       end
 
       # A line opening a block-level element starts a raw html block. Only the

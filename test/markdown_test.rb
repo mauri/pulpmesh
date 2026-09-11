@@ -28,6 +28,25 @@ Harness.check("duplicate heading ids are numbered", MD.render("## Same\n\n## Sam
               "<h2 id=\"same\">Same</h2>\n\n<h2 id=\"same-1\">Same</h2>\n\n<h2 id=\"same-2\">Same</h2>\n")
 Harness.check("heading with no id-able text", MD.render("## !!!"), "<h2>!!!</h2>\n")
 
+Harness.check("underlined with equals is an h1", MD.render("Title\n===\n"),
+              "<h1 id=\"title\">Title</h1>\n")
+Harness.check("underlined with dashes is an h2", MD.render("Title\n---\n"),
+              "<h2 id=\"title\">Title</h2>\n")
+Harness.check("one underline character is enough", MD.render("Title\n=\n"),
+              "<h1 id=\"title\">Title</h1>\n")
+Harness.check("the first underline character picks the level", MD.render("Title\n=-=\n"),
+              "<h1 id=\"title\">Title</h1>\n")
+Harness.check("markup in an underlined heading", MD.render("*Title*\n===\n"),
+              "<h1 id=\"title\"><em>Title</em></h1>\n")
+# Only a line that starts a block can be underlined. A paragraph already
+# holding a line keeps taking them.
+Harness.check("a second line is not underlined", MD.render("One\nTwo\n===\n"),
+              "<p>One\nTwo\n===</p>\n")
+Harness.check("an indented underline is not one", MD.render("Title\n  ---\n"),
+              "<p>Title</p>\n\n<hr />\n")
+Harness.check("an underline with nothing over it is text", MD.render("\n===\n"),
+              "\n<p>===</p>\n")
+
 Harness.check("horizontal rule", MD.render("a\n\n---\n\nb"), "<p>a</p>\n\n<hr />\n\n<p>b</p>\n")
 Harness.check("unordered list", MD.render("- one\n- two"),
               "<ul>\n  <li>one</li>\n  <li>two</li>\n</ul>\n")

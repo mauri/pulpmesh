@@ -139,8 +139,11 @@ quotes, and `rel="nofollow"` on outbound links. `![alt](pic.png "title")`
 becomes an `<img>`; images are not copied into the output directory, so the
 path has to resolve on its own.
 
-Reference links, tables, setext headings and footnotes are not handled. A line
-using one comes out as the paragraph text it looks like.
+Headings can be written either way: `# Title` or `Title` underlined with `===`
+for an `h1` and `---` for an `h2`.
+
+Reference links, tables and footnotes are not handled. A line using one comes
+out as the paragraph text it looks like.
 
 Raw html passes through normalised — an inline tag is emitted with its name
 lowercased, attributes quoted and escaped, and void elements self-closed; a
