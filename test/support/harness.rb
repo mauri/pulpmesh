@@ -83,6 +83,15 @@ module Harness
   def self.children(dir)
     Dir.children(dir).sort
   end
+
+  # The reason a build was refused, without the path it names, which is not
+  # reproducible. Returns "no error raised" when the block completes.
+  def self.refusal
+    yield
+    "no error raised"
+  rescue Pulpmesh::Error => e
+    e.message.split(":").first
+  end
 end
 
 at_exit do

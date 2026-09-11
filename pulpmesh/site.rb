@@ -5,6 +5,12 @@ module Pulpmesh
   class Site
     OUTPUT_DIR = "_site"
 
+    # Left in the output directory by every build. A later build looks for it
+    # before deleting anything, so a directory pulpmesh did not write is never
+    # removed.
+    OUTPUT_MARKER = ".pulpmesh-output"
+    MARKER_TEXT = "Written by pulpmesh. This directory is deleted and rebuilt on every build.\n"
+
     attr_reader :source, :output, :config, :posts, :warnings
 
     def initialize(source: Dir.pwd, output: nil, base_url: nil)
@@ -12,6 +18,7 @@ module Pulpmesh
       raise Error, "not a directory: #{source}" unless File.directory?(@source)
 
       @output = File.expand_path(output || File.join(@source, OUTPUT_DIR))
+      refuse_unsafe_output
       @config = Config.new(@source, base_url: base_url)
       @warnings = []
       @posts = collect_posts
@@ -20,6 +27,7 @@ module Pulpmesh
     def build
       FSUtil.rm_rf(output)
       FSUtil.mkdir_p(output)
+      write(OUTPUT_MARKER, MARKER_TEXT)
 
       posts.each { |post| write(post.filename, render("post.html.erb", post: post)) }
       write("index.html", render("index.html.erb"))
@@ -36,6 +44,30 @@ module Pulpmesh
     end
 
     private
+
+    # A build opens by deleting the whole output directory, so the path has to
+    # be one pulpmesh may delete: not the source folder, not a folder the source
+    # sits inside, not the home directory, and not somewhere already holding
+    # files that no previous build put there.
+    def refuse_unsafe_output
+      raise Error, "output directory is the source directory: #{output}" if output == source
+      raise Error, "output directory contains the source directory: #{output}" if inside?(source, output)
+      raise Error, "output directory is the home directory: #{output}" if output == File.expand_path(Dir.home)
+
+      return unless Dir.exist?(output)
+      return if Dir.children(output).empty?
+      return if File.exist?(File.join(output, OUTPUT_MARKER))
+
+      raise Error, "refusing to delete an output directory pulpmesh did not write: #{output}"
+    end
+
+    # Whether child sits somewhere under parent. Both paths are already expanded,
+    # and the separator keeps a shared prefix from counting: `/srv/blog-old` is
+    # not inside `/srv/blog`.
+    def inside?(child, parent)
+      prefix = parent.end_with?("/") ? parent : "#{parent}/"
+      child.start_with?(prefix)
+    end
 
     def collect_posts
       files = Dir.glob(File.join(source, "*.md")).sort.reject { |path| Post.draft?(path) }

@@ -35,8 +35,15 @@ server will do:
 python3 -m http.server -d _site 4000
 ```
 
-`SOURCE` defaults to the current directory. The output directory is wiped and
-rewritten on every build; nothing is ever written into `SOURCE` itself.
+`SOURCE` defaults to the current directory. Apart from the default output
+directory, `SOURCE/_site`, nothing is written into `SOURCE` itself.
+
+The output directory is wiped and rewritten on every build, so pulpmesh only
+deletes a directory it wrote itself. Each build leaves a `.pulpmesh-output`
+marker behind and the next one looks for it; a directory that is empty, or
+that does not exist yet, is fine too. Anything else is refused, as is building
+into `SOURCE`, into a directory `SOURCE` sits inside, or into your home
+directory.
 
 Each build produces one `.html` per post, plus `index.html`, `404.html`,
 `rss.xml`, `blog.css`, `syntax.css`, `pulpmesh-logo.svg` and `favicon.svg`.
