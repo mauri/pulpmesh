@@ -54,8 +54,9 @@ Each build produces one `.html` per post, plus `index.html`, `404.html`,
 
 **Filenames become paths.** A leading sequencing prefix is dropped, so
 `0010-frontier-model.md` and `2026-06-20-frontier-model.md` both publish as
-`frontier-model.html`. Two files that would publish to the same page abort the
-build.
+`frontier-model.html`. Anything that would need escaping in a url becomes a
+dash, so `my first post.md` publishes as `my-first-post.html`; letters outside
+ascii are kept. Two files that would publish to the same page abort the build.
 
 **Files starting with `_` are drafts** and are not rendered. `_pulpmesh.md` and
 `_styles.css` are configuration, not posts.

@@ -22,7 +22,9 @@ module Pulpmesh
       heading, body = Markdown.extract_title(body)
 
       stripped = basename.sub(SEQUENCE_PREFIX, "")
-      @slug = stripped.empty? ? basename : stripped
+      @slug = slugify(stripped.empty? ? basename : stripped)
+      raise Error, "#{File.basename(path)} has no usable name" if @slug.empty?
+
       @title = heading || front["title"] || @slug
       @updated_at = File.mtime(path).utc
       @date = resolve_date(front["date"])
@@ -36,6 +38,19 @@ module Pulpmesh
     end
 
     private
+
+    # The published name has to be usable as a url path without escaping, since
+    # it is both the file written to disk and the href linking to it. Runs of
+    # anything else collapse to a single dash, and leading and trailing dashes
+    # and dots come off, so `my first post.md` publishes as `my-first-post.html`.
+    #
+    # Letters outside ascii are kept: they are valid in a url and a browser
+    # encodes them itself. The ord check stands in for a unicode property, which
+    # spinel compiles to a pattern that matches nothing.
+    def slugify(name)
+      kept = name.gsub(/[^A-Za-z0-9._-]/) { |char| char.ord >= 128 ? char : "-" }
+      kept.gsub(/-+/, "-").sub(/\A[.-]+/, "").sub(/[.-]+\z/, "")
+    end
 
     # Date.parse is unavailable, so the accepted spelling is ISO only. That is
     # what every front-matter date and every date-prefixed filename already uses;
