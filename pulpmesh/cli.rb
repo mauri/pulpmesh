@@ -17,14 +17,31 @@ module Pulpmesh
         -h, --help         print this message
     TEXT
 
+    # The entry point the binary calls: runs the command and turns anything it
+    # refuses to do into a line on stderr and an exit code. `run` itself only
+    # decides, and raises, which is what makes it testable — there is no way to
+    # capture stderr under spinel.
+    #
+    # SystemCallError rather than Errno::ENOENT alone: a source folder that
+    # cannot be read and an output path that cannot be written raise their own
+    # Errno, and each of those is a message to the user, not a backtrace.
     def self.start(argv)
       new.run(argv)
+    rescue Pulpmesh::Error, SystemCallError => e
+      warn "pulpmesh: #{e.message}"
+      1
     end
 
     def run(argv)
       options = {}
       args = argv.dup
-      build_parser(options).parse!(args)
+      begin
+        build_parser(options).parse!(args)
+      rescue OptionParser::ParseError => e
+        # CRuby's optparse raises on a flag it does not know. Reported the same
+        # way as the leftover found below, rather than as a backtrace.
+        raise Error, e.message
+      end
 
       # The bundled optparse leaves anything it does not recognise in argv
       # rather than raising, so an unknown flag would otherwise be taken as the
@@ -34,15 +51,10 @@ module Pulpmesh
 
       command = args.shift || "build"
 
-      case command
-      when "build" then build(args.shift, options) && 0
-      else
-        warn "unknown command: #{command}\n\n#{USAGE}"
-        1
-      end
-    rescue Pulpmesh::Error, Errno::ENOENT => e
-      warn "pulpmesh: #{e.message}"
-      1
+      raise Error, "unknown command: #{command}\n\n#{USAGE}" unless command == "build"
+
+      build(args.shift, options)
+      0
     end
 
     private

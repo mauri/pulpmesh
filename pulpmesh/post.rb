@@ -62,7 +62,14 @@ module Pulpmesh
       match = ISO_DATE.match(raw.to_s)
       return updated_at unless match
 
-      Time.utc(match[1].to_i, match[2].to_i, match[3].to_i)
+      # The shape can be right and the date still not exist, as `2025-13-45` is.
+      # Time.utc raises on one, and that falls back like any other date it could
+      # not read.
+      begin
+        Time.utc(match[1].to_i, match[2].to_i, match[3].to_i)
+      rescue ArgumentError
+        updated_at
+      end
     end
   end
 end
