@@ -249,7 +249,7 @@ _buf = ::String.new; _buf << '<?xml version="1.0" encoding="UTF-8"?>
 '.freeze;       entry.tags.each do |tag| 
  _buf << '      <category>'.freeze; _buf << ( h tag ).to_s; _buf << '</category>
 '.freeze;       end 
- _buf << '      <description><![CDATA['.freeze; _buf << ( entry.html ).to_s; _buf << ']]></description>
+ _buf << '      <description>'.freeze; _buf << ( cdata entry.html ).to_s; _buf << '</description>
     </item>
 '.freeze;     end 
  _buf << '  </channel>

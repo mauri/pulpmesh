@@ -119,6 +119,22 @@ Harness.scratch("replace-src") do |source|
   Harness.check("source folder untouched", Harness.children(source), before)
 end
 
+# A post carrying the sequence that ends a CDATA section does not end the one
+# the feed wraps it in.
+Harness.scratch("cdata-src") do |source|
+  File.write(File.join(source, "_pulpmesh.md"), "---\nbase_url: https://cdata.example\n---\n")
+  File.write(File.join(source, "brackets.md"), "# Brackets\n\n<div>a ]]> b</div>\n")
+
+  Harness.build("cdata", source) do |_site, out|
+    feed = File.read(File.join(out, "rss.xml"))
+    Harness.check("the section is split, not ended early",
+                  feed.include?("a ]]]]><![CDATA[> b"), true)
+    Harness.check("one section opens for each that closes",
+                  feed.scan("<![CDATA[").size, feed.scan("]]>").size)
+    Harness.check("the item is still closed", feed.include?("</description>\n    </item>"), true)
+  end
+end
+
 # A build only deletes an output directory that is empty or that a previous
 # build marked as its own.
 Harness.scratch("guard-src") do |source|

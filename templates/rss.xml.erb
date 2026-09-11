@@ -15,7 +15,7 @@
       <% entry.tags.each do |tag| -%>
       <category><%= h tag %></category>
       <% end -%>
-      <description><![CDATA[<%= entry.html %>]]></description>
+      <description><%= cdata entry.html %></description>
     </item>
     <% end -%>
   </channel>

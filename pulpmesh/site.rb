@@ -132,6 +132,14 @@ module Pulpmesh
         Escape.escape_html(text)
       end
 
+      # Raw html for the feed. A CDATA section ends at the first `]]>`, so a
+      # post containing that sequence would close it early and leave the rest of
+      # the document as markup; each occurrence is split across two sections
+      # instead, which parsers rejoin into the original text.
+      def cdata(html)
+        "<![CDATA[#{html.to_s.gsub("]]>", "]]]]><![CDATA[>")}]]>"
+      end
+
       def iso(time)
         time.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
       end
