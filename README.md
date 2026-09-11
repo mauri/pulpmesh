@@ -134,10 +134,15 @@ colours them, but they are not Rouge's lexers. They recognise the same kinds
 of token and label them the same way; where Rouge splits a run differently the
 colours match and the markup does not.
 
-Markdown is rendered with GitHub-flavored syntax, straight (not typographic)
-quotes, and `rel="nofollow"` on outbound links. `![alt](pic.png "title")`
-becomes an `<img>`; images are not copied into the output directory, so the
-path has to resolve on its own.
+Markdown is rendered with GitHub-flavored syntax and `rel="nofollow"` on
+outbound links. `![alt](pic.png "title")` becomes an `<img>`; images are not
+copied into the output directory, so the path has to resolve on its own.
+
+A newline inside a paragraph, a list item or a blockquote is a line break, and
+prose is typeset: quotes curl, `--` becomes an en dash, `---` an em dash and
+`...` an ellipsis. None of that happens inside a code span or a fenced block,
+in a url, in an image's alt text, or inside a raw html element, all of which
+keep exactly what you typed.
 
 Headings can be written either way: `# Title` or `Title` underlined with `===`
 for an `h1` and `---` for an `h2`.

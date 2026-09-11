@@ -57,6 +57,50 @@ module Pulpmesh
     # void elements these are the blocks kramdown closed with a blank line.
     RAW_TEXT = %w[script style].freeze
 
+    EM_DASH = "—"
+    EN_DASH = "–"
+    ELLIPSIS = "…"
+    LDQUO = "“"
+    RDQUO = "”"
+    LSQUO = "‘"
+    RSQUO = "’"
+
+    QUOTE_CHAR = /["']/
+
+    # Unicode's General Punctuation block, which holds every character the
+    # typographic pass above can produce. A heading id drops these.
+    PUNCTUATION_BLOCK = (0x2000..0x206F).freeze
+
+    # Typographic quotes, ported from kramdown, which took them from RubyPants,
+    # which took them from SmartyPants. Which of the four characters a `"` or a
+    # `'` becomes depends on what surrounds it. The rules are tried in the order
+    # they are written here, and the first that matches at the quote wins.
+    #
+    # They are named constants applied by a chain rather than a table walked in
+    # a loop: spinel cannot call `match` with a start offset on a Regexp it read
+    # out of an array, and every rule here needs that offset.
+    SQ_PUNCT = '[!"#\$\%\'()*+,\-.\/:;<=>?\@\[\\\\\]\^_`{|}~]'
+    SQ_CLOSE = %![^ \\\\\t\r\n\\[{(-]!
+
+    # A quote opening emphasis, as in: "*emphasised*"
+    SQ_EMPHASIS = /("|')(?=[_*]{1,2}\S)/
+    # A quote against punctuation closes, unless an ellipsis follows.
+    SQ_PUNCT_AHEAD = /("|')(?=#{SQ_PUNCT}(?!\.\.)\B)/
+    # Two quotes together, as in: He said, "'Quoted' words in a larger quote."
+    SQ_DOUBLE_SINGLE = /(\s?)"'(?=\w)/
+    SQ_SINGLE_DOUBLE = /(\s?)'"(?=\w)/
+    # A decade written as an abbreviation: the '80s.
+    SQ_DECADE = /(\s?)'(?=\d\ds)/
+    # Most opening quotes: whitespace, then a quote, then a word.
+    SQ_OPENING = /(\s)('|")(?=\w)/
+    # Most closing quotes: anything that can end a phrase, then a quote.
+    SQ_CLOSING = /(#{SQ_CLOSE})('|")/
+    # A possessive or a quote ending a phrase, as in: <i>Custer</i>'s Last Stand.
+    SQ_TRAILING = /("|')(?=\s|s\b|$)/
+    # Anything still undecided is an opening quote.
+    SQ_ANY_SINGLE = /(.?)'/m
+    SQ_ANY_DOUBLE = /(.?)"/m
+
 
     def self.render(text)
       Renderer.new(text.to_s).render
@@ -104,6 +148,12 @@ module Pulpmesh
 
     def self.scan(text, open_tags)
       out = ::String.new
+      # Plain characters are collected into a run rather than emitted one at a
+      # time: the text transforms work on runs, not on single characters. A run
+      # never spans a tag, so whether it sits inside a raw html element is
+      # decided once, when its first character arrives.
+      literal = ::String.new
+      bare = open_tags.empty?
       index = 0
       length = text.length
       # A link or an image needs a `]` after the `[` that opens it. Without one
@@ -114,70 +164,131 @@ module Pulpmesh
 
       while index < length
         char = text[index]
-        handled = false
+        finish = nil
 
         if char == "`"
           finish = code_span(text, index)
-          if finish
-            out << finish[0]
-            index = finish[1]
-            handled = true
-          end
         elsif char == "!" && last_close && index < last_close
           finish = image(text, index)
-          if finish
-            out << finish[0]
-            index = finish[1]
-            handled = true
-          end
         elsif char == "[" && last_close && index < last_close
           finish = link(text, index, open_tags)
-          if finish
-            out << finish[0]
-            index = finish[1]
-            handled = true
-          end
         elsif char == "*" || char == "_"
           finish = emphasis(text, index, open_tags)
-          if finish
-            out << finish[0]
-            index = finish[1]
-            handled = true
-          end
         elsif char == "<"
           finish = html(text, index, open_tags)
-          if finish
-            out << finish[0]
-            index = finish[1]
-            handled = true
-          end
         elsif char == "&"
           finish = entity(text, index)
-          if finish
-            out << finish[0]
-            index = finish[1]
-            handled = true
-          end
         end
 
-        next if handled
-
-        out << case char
-               when "&" then "&amp;"
-               when "<" then "&lt;"
-               when ">" then "&gt;"
-               # A newline inside a block is a line break, which is what makes
-               # this GitHub-flavored rather than plain markdown. Not inside a
-               # raw html element though: kramdown left that content's line
-               # endings alone, and an open tag on the stack is what says we are
-               # in one.
-               when "\n" then open_tags.empty? ? "<br />\n" : "\n"
-               else char
-               end
-        index += 1
+        if finish
+          out << text_run(literal, bare)
+          literal = ::String.new
+          out << finish[0]
+          index = finish[1]
+        else
+          bare = open_tags.empty? if literal.empty?
+          literal << char
+          index += 1
+        end
       end
 
+      out << text_run(literal, bare)
       out
+    end
+
+    # One run of plain characters, in the order the transforms have to happen:
+    # the typographic ones first, since they read the characters around a quote,
+    # then escaping, then the line breaks, which are markup and so cannot be
+    # escaped afterwards.
+    #
+    # `bare` is false inside a raw html element, where kramdown left line
+    # endings alone.
+    def self.text_run(run, bare)
+      return run if run.empty?
+
+      escaped = escape_text(smart_quotes(dashes(run)))
+      bare ? escaped.gsub("\n", "<br />\n") : escaped
+    end
+
+    # `---` is an em dash, `--` an en dash and `...` an ellipsis. Longest first,
+    # so `----` comes out as an em dash followed by what is left over.
+    def self.dashes(run)
+      run.gsub("---", EM_DASH).gsub("--", EN_DASH).gsub("...", ELLIPSIS)
+    end
+
+    # Walks to each `"` or `'` and lets SQ_RULES decide which way it turns. The
+    # rules may read the character before the quote, so matching starts there.
+    def self.smart_quotes(run)
+      out = ::String.new
+      index = 0
+      while (found = run.index(QUOTE_CHAR, index))
+        # One character of lead-in, where there is one to spare and it has not
+        # already been emitted.
+        start = found > index ? found - 1 : found
+        out << run[index...start]
+
+        applied = apply_quote_rules(run, start)
+        # The last two rules match any quote at all, so this only comes back
+        # empty if the character found was not one, which cannot happen.
+        break unless applied
+
+        out << applied[0]
+        index = applied[1]
+      end
+      out << run[index..].to_s
+      out
+    end
+
+    # The first rule that matches exactly at `start`, applied. Returns
+    # [replacement, index_after] or nil. The last two rules match any quote at
+    # all, so nil only comes back when there was no quote to begin with.
+    # Each rule is matched and tested in place rather than through a helper that
+    # hands a match back: spinel cannot work out the type of a MatchData that
+    # reached it as another method's return value, and a rule only counts when
+    # it matches at the quote itself rather than somewhere further along.
+    def self.apply_quote_rules(run, start)
+      match = SQ_EMPHASIS.match(run, start)
+      return [quote_for(:lquote1, match), match.end(0)] if match && match.begin(0) == start
+
+      match = SQ_PUNCT_AHEAD.match(run, start)
+      return [quote_for(:rquote1, match), match.end(0)] if match && match.begin(0) == start
+
+      match = SQ_DOUBLE_SINGLE.match(run, start)
+      return ["#{match[1]}#{LDQUO}#{LSQUO}", match.end(0)] if match && match.begin(0) == start
+
+      match = SQ_SINGLE_DOUBLE.match(run, start)
+      return ["#{match[1]}#{LSQUO}#{LDQUO}", match.end(0)] if match && match.begin(0) == start
+
+      match = SQ_DECADE.match(run, start)
+      return ["#{match[1]}#{RSQUO}", match.end(0)] if match && match.begin(0) == start
+
+      match = SQ_OPENING.match(run, start)
+      return ["#{match[1]}#{quote_for(:lquote2, match)}", match.end(0)] if match && match.begin(0) == start
+
+      match = SQ_CLOSING.match(run, start)
+      return ["#{match[1]}#{quote_for(:rquote2, match)}", match.end(0)] if match && match.begin(0) == start
+
+      match = SQ_TRAILING.match(run, start)
+      return [quote_for(:rquote1, match), match.end(0)] if match && match.begin(0) == start
+
+      match = SQ_ANY_SINGLE.match(run, start)
+      return ["#{match[1]}#{LSQUO}", match.end(0)] if match && match.begin(0) == start
+
+      match = SQ_ANY_DOUBLE.match(run, start)
+      return ["#{match[1]}#{LDQUO}", match.end(0)] if match && match.begin(0) == start
+
+      nil
+    end
+
+    # Which of the four characters a rule produces: the shape comes from the
+    # rule, the double-or-single from the quote the match captured.
+    def self.quote_for(rule, match)
+      double = (rule == :lquote1 || rule == :rquote1 ? match[1] : match[2]) == "\""
+
+      case rule
+      when :lquote1, :lquote2 then double ? LDQUO : LSQUO
+      else double ? RDQUO : RSQUO
+      end
     end
 
     # A run of n backticks closes on the next run of exactly n. The content is
@@ -633,11 +744,13 @@ module Pulpmesh
       # then spaces and tabs to dashes. `\w` rather than `\p{Word}`, which
       # spinel compiles to a pattern that matches nothing.
       def id_for(text)
-        # `\w` is ASCII-only, so non-ascii is kept explicitly. That is an
-        # approximation of \p{Word}: it keeps accented letters, and also keeps
-        # non-ascii symbols that kramdown would have dropped.
+        # `\w` is ASCII-only, so non-ascii is decided by code point. That is an
+        # approximation of \p{Word}: it keeps accented letters, and drops
+        # General Punctuation, which is where the quotes, dashes and ellipsis
+        # the typographic pass produces all live. A non-ascii symbol outside
+        # that block is still kept where kramdown would have dropped it.
         kept = plain_text(text).downcase.gsub(/[^\w\- \t]/) do |char|
-          char.ord >= 128 ? char : ""
+          char.ord >= 128 && !PUNCTUATION_BLOCK.include?(char.ord) ? char : ""
         end
         base = kept.tr(" \t", "-")
 

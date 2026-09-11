@@ -27,8 +27,8 @@ Harness.check("heading id keeps underscores", MD.render("## snake_case heading")
               "<h2 id=\"snake_case-heading\">snake_case heading</h2>\n")
 Harness.check("heading id keeps leading digits", MD.render("## 10 years later"),
               "<h2 id=\"10-years-later\">10 years later</h2>\n")
-Harness.check("heading id drops punctuation", MD.render("## What's wrong?"),
-              "<h2 id=\"whats-wrong\">What's wrong?</h2>\n")
+Harness.check("heading id drops punctuation", Harness.ascii(MD.render("## What's wrong?")),
+              "<h2 id=\"whats-wrong\">What\\u2019s wrong?</h2>\n")
 Harness.check("duplicate heading ids are numbered", MD.render("## Same\n\n## Same\n\n## Same"),
               "<h2 id=\"same\">Same</h2>\n\n<h2 id=\"same-1\">Same</h2>\n\n<h2 id=\"same-2\">Same</h2>\n")
 Harness.check("heading with no id-able text", MD.render("## !!!"), "<h2>!!!</h2>\n")
@@ -92,8 +92,9 @@ Harness.check("a single-quoted title too", MD.render("[x](u 't')"),
 
 Harness.check("a quote in an attribute cannot end it", MD.render("[a](u \"it's\")"),
               "<p><a href=\"u\" title=\"it&#39;s\">a</a></p>\n")
-Harness.check("a quote in text is left alone", MD.render("plain 'quotes' stay"),
-              "<p>plain 'quotes' stay</p>\n")
+Harness.check("a quote in text becomes typographic",
+              Harness.ascii(MD.render("plain 'quotes' stay")),
+              "<p>plain \\u2018quotes\\u2019 stay</p>\n")
 
 Harness.check("image", MD.render("![alt](pic.png)"),
               "<p><img src=\"pic.png\" alt=\"alt\" /></p>\n")
@@ -116,7 +117,16 @@ Harness.check("a bang before a link is literal", MD.render("!![a](p.png)"),
 Harness.check("bare bracket is literal", MD.render("[1] a footnote marker"),
               "<p>[1] a footnote marker</p>\n")
 
-Harness.check("quotes stay straight", MD.render("It's a \"quote\""), "<p>It's a \"quote\"</p>\n")
+Harness.check("typographic quotes", Harness.ascii(MD.render("It's a \"quote\"")),
+              "<p>It\\u2019s a \\u201Cquote\\u201D</p>\n")
+Harness.check("a quote in a code span stays straight", MD.render("`it's`"),
+              "<p><code>it's</code></p>\n")
+Harness.check("dashes and ellipsis", Harness.ascii(MD.render("a -- b --- c ... d")),
+              "<p>a \\u2013 b \\u2014 c \\u2026 d</p>\n")
+Harness.check("a decade abbreviation closes", Harness.ascii(MD.render("the '80s")),
+              "<p>the \\u201980s</p>\n")
+Harness.check("nested quotes", Harness.ascii(MD.render(%(he said "'quoted' words"))),
+              "<p>he said \\u201C\\u2018quoted\\u2019 words\\u201D</p>\n")
 Harness.check("markup characters escaped", MD.render("5 < 6 & 7 > 4"),
               "<p>5 &lt; 6 &amp; 7 &gt; 4</p>\n")
 
