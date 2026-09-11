@@ -143,7 +143,7 @@ nav.feed {
 /* The wordmark in the default footer line. The svg has room above and below
    the letters, so it is set taller than the text and dropped below the
    baseline to sit on it. */
-.footer-logo {
+footer img {
   height: 1.6em;
   width: auto;
   vertical-align: -0.45em;

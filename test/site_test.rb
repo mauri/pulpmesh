@@ -22,7 +22,8 @@ Harness.build("site", Harness::FIXTURE) do |site, out|
   Harness.check("default favicon linked",
                 index.include?("<link rel=\"icon\" type=\"image/svg+xml\" href=\"favicon.svg\">"), true)
   Harness.check("footer carries the wordmark",
-                index.include?("<img src=\"pulpmesh-logo.svg\" alt=\"pulpmesh\" class=\"footer-logo\">"), true)
+                index.include?("<img src=\"pulpmesh-logo.svg\" alt=\"pulpmesh\" />"), true)
+  Harness.check("footer is not wrapped in a paragraph", index.include?("<footer>\n            <p>"), false)
 
   page = File.read(File.join(out, "ordinal-prefixed.html"))
   article = page[/<article class="md">(.*?)<\/article>/m, 1]

@@ -8,8 +8,7 @@ module Pulpmesh
     STYLESHEET = "_styles.css"
 
     DEFAULT_KEYWORDS = "blog, blogging, write, writing, hackers, developers, terminal"
-    DEFAULT_FOOTER = %(Published with <a href="https://pulpme.sh">) +
-                     %(<img src="pulpmesh-logo.svg" alt="pulpmesh" class="footer-logo"></a>)
+    DEFAULT_FOOTER = "Published with [![pulpmesh](pulpmesh-logo.svg)](https://pulpme.sh)"
 
     attr_reader :source, :data, :intro_html
 
@@ -37,8 +36,10 @@ module Pulpmesh
       data["keywords"] || DEFAULT_KEYWORDS
     end
 
+    # One line of markdown, rendered as a line rather than as a document, so it
+    # carries a link or an image without being wrapped in a paragraph.
     def footer
-      data.fetch("footer", DEFAULT_FOOTER)
+      Markdown.inline(data.fetch("footer", DEFAULT_FOOTER))
     end
 
     def favicon

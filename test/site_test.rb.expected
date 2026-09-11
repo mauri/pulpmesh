@@ -8,6 +8,7 @@ ok  index renders the pulpmesh intro => true
 ok  site stylesheet not linked when absent => false
 ok  default favicon linked => true
 ok  footer carries the wordmark => true
+ok  footer is not wrapped in a paragraph => false
 ok  title in the header => true
 ok  title not repeated in the article => false
 ok  absolute og url => true

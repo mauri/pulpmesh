@@ -101,7 +101,7 @@ builds.
 | `with_styles` | set `false` to ignore `_styles.css` |
 | `favicon` | path to a favicon, replacing the bundled `favicon.svg` |
 | `card_image` | absolute url for the og:image / twitter:image card |
-| `footer` | html for the footer line, replacing the bundled wordmark |
+| `footer` | one line of markdown for the footer, replacing the bundled wordmark |
 
 ## Styling
 
@@ -183,8 +183,9 @@ you typed and `&mdash;` the eight, not an ampersand and not a dash. Write the
 character you want — the source is utf-8 and a `<` needs no escaping, since
 nothing here reads one as markup.
 
-The `footer` key in `_pulpmesh.md` is the remaining exception: it is written by
-whoever owns the blog rather than by a post, and it is emitted as given.
+That holds everywhere, with no exception for configuration: `_pulpmesh.md`'s
+body and its `footer` line are markdown on the same terms as a post. The
+default footer is `Published with [![pulpmesh](pulpmesh-logo.svg)](https://pulpme.sh)`.
 
 ## What's inside
 
