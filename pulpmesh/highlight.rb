@@ -62,11 +62,11 @@ module Pulpmesh
       # An unrecognised language is plain escaped text in a labelled <code>,
       # which is what kramdown emitted when Rouge had no lexer for it.
       unless tokens
-        return "<pre><code class=\"language-#{Markdown.escape_attribute(language)}\">" \
+        return "<pre><code class=\"language-#{Escape.escape_html(language)}\">" \
                "#{Markdown.escape_text(code)}</code></pre>"
       end
 
-      "<div class=\"language-#{Markdown.escape_attribute(language)} highlighter-rouge\">" \
+      "<div class=\"language-#{Escape.escape_html(language)} highlighter-rouge\">" \
         "<div class=\"highlight\"><pre class=\"highlight\"><code>#{join(tokens)}</code></pre></div></div>"
     end
 

@@ -62,6 +62,11 @@ Harness.check("a title is its own attribute", MD.render(%([x](u "t"))),
 Harness.check("a single-quoted title too", MD.render("[x](u 't')"),
               "<p><a href=\"u\" title=\"t\">x</a></p>\n")
 
+Harness.check("a quote in an attribute cannot end it", MD.render("[a](u \"it's\")"),
+              "<p><a href=\"u\" title=\"it&#39;s\">a</a></p>\n")
+Harness.check("a quote in text is left alone", MD.render("plain 'quotes' stay"),
+              "<p>plain 'quotes' stay</p>\n")
+
 Harness.check("image", MD.render("![alt](pic.png)"),
               "<p><img src=\"pic.png\" alt=\"alt\" /></p>\n")
 Harness.check("image with an empty alt", MD.render("![](pic.png)"),

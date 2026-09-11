@@ -31,6 +31,8 @@ ok  parens in a url are balanced, not cut at the first one => "<p><a href=\"http
 ok  an unbalanced destination is literal text => "<p>[x](a(b)</p>\n"
 ok  a title is its own attribute => "<p><a href=\"u\" title=\"t\">x</a></p>\n"
 ok  a single-quoted title too => "<p><a href=\"u\" title=\"t\">x</a></p>\n"
+ok  a quote in an attribute cannot end it => "<p><a href=\"u\" title=\"it&#39;s\">a</a></p>\n"
+ok  a quote in text is left alone => "<p>plain 'quotes' stay</p>\n"
 ok  image => "<p><img src=\"pic.png\" alt=\"alt\" /></p>\n"
 ok  image with an empty alt => "<p><img src=\"pic.png\" alt=\"\" /></p>\n"
 ok  image alt is literal, not markup => "<p><img src=\"pic.png\" alt=\"a *b*\" /></p>\n"

@@ -65,7 +65,10 @@ module Pulpmesh
     end
 
     # Text content, where only the three markup characters are escaped. Quotes
-    # are left alone, as kramdown left them.
+    # are left alone, as kramdown left them. `unescape_text` reverses this, and
+    # is the only thing that may: an attribute value goes through
+    # `Escape.escape_html`, which escapes quotes too, so that the value stays
+    # inside its delimiters whichever quote a template chose.
     def self.escape_text(text)
       text.to_s.gsub(/[&<>]/) do |char|
         case char
@@ -271,7 +274,7 @@ module Pulpmesh
         end
 
         # A bare attribute becomes `name=""`, matching kramdown's normalisation.
-        out << " #{name}=\"#{escape_attribute(decode_entities(value))}\""
+        out << " #{name}=\"#{Escape.escape_html(decode_entities(value))}\""
       end
       nil
     end
@@ -348,10 +351,10 @@ module Pulpmesh
       return nil unless parsed
 
       href = parsed[0]
-      title = parsed[1] ? " title=\"#{escape_attribute(parsed[1])}\"" : ""
+      title = parsed[1] ? " title=\"#{Escape.escape_html(parsed[1])}\"" : ""
       label = text[(start + 1)...label_end]
       rel = href.match?(ABSOLUTE) ? " rel=\"nofollow\"" : ""
-      ["<a href=\"#{escape_attribute(href)}\"#{rel}#{title}>#{scan(label, open_tags)}</a>", parsed[2]]
+      ["<a href=\"#{Escape.escape_html(href)}\"#{rel}#{title}>#{scan(label, open_tags)}</a>", parsed[2]]
     end
 
     # `![alt](src)`. The label becomes the alt text literally: no inline markup
@@ -367,8 +370,8 @@ module Pulpmesh
       return nil unless parsed
 
       alt = text[(start + 2)...label_end]
-      title = parsed[1] ? " title=\"#{escape_attribute(parsed[1])}\"" : ""
-      ["<img src=\"#{escape_attribute(parsed[0])}\" alt=\"#{escape_attribute(alt)}\"#{title} />",
+      title = parsed[1] ? " title=\"#{Escape.escape_html(parsed[1])}\"" : ""
+      ["<img src=\"#{Escape.escape_html(parsed[0])}\" alt=\"#{Escape.escape_html(alt)}\"#{title} />",
        parsed[2]]
     end
 
@@ -467,17 +470,6 @@ module Pulpmesh
       return true if char.nil?
 
       !char.match?(/[a-zA-Z0-9]/)
-    end
-
-    def self.escape_attribute(text)
-      text.to_s.gsub(/[&<>"]/) do |char|
-        case char
-        when "&" then "&amp;"
-        when "<" then "&lt;"
-        when ">" then "&gt;"
-        else "&quot;"
-        end
-      end
     end
 
     # One document. Holds the ids already handed out, so a repeated heading gets
@@ -591,7 +583,7 @@ module Pulpmesh
       def heading(level, text)
         id = id_for(text)
         # kramdown emitted no attribute at all when nothing survived the rule.
-        attribute = id.empty? ? "" : " id=\"#{Markdown.escape_attribute(id)}\""
+        attribute = id.empty? ? "" : " id=\"#{Escape.escape_html(id)}\""
         "<h#{level}#{attribute}>#{Markdown.inline(text)}</h#{level}>"
       end
 
