@@ -1,0 +1,7 @@
+ok  the tree is gone => false
+ok  the directory behind the link survives => true
+ok  the file behind the link survives => "precious"
+ok  the link is gone => false
+ok  the target survives => "precious"
+ok  a tree with dotfiles is removed => false
+ok  removing a missing path is a no-op => []

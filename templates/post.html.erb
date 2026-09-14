@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title><%= h post.title %></title>
+
+        <meta name="keywords" content="<%= h config.keywords %>">
+        <% if config.favicon -%>
+        <link rel="icon" href="<%= h config.favicon %>">
+        <% else -%>
+        <link rel="icon" type="image/svg+xml" href="favicon.svg">
+        <% end -%>
+
+        <meta name="description" content="<%= h post.description %>">
+
+        <meta property="og:type" content="article">
+        <meta property="og:site_name" content="<%= h config.title %>">
+        <% if url_for -%>
+        <meta property="og:url" content="<%= h post_url(post) %>">
+        <% end -%>
+        <meta property="og:title" content="<%= h post.title %>">
+        <% unless post.description.empty? -%>
+        <meta property="og:description" content="<%= h post.description %>">
+        <% end -%>
+        <% if config.card_image -%>
+
+        <meta property="og:image" content="<%= h config.card_image %>">
+        <meta property="og:image:width" content="300">
+        <meta property="og:image:height" content="300">
+
+        <meta name="twitter:image" content="<%= h config.card_image %>">
+        <% end -%>
+
+        <meta name="twitter:card" content="summary">
+        <% if url_for -%>
+        <meta name="twitter:url" content="<%= h post_url(post) %>">
+        <% end -%>
+        <meta name="twitter:title" content="<%= h post.title %>">
+        <% unless post.description.empty? -%>
+        <meta name="twitter:description" content="<%= h post.description %>">
+        <% end -%>
+
+        <link rel="stylesheet" href="blog.css">
+        <link rel="stylesheet" href="syntax.css">
+        <% if config.styles? -%>
+        <link rel="stylesheet" href="_styles.css">
+        <% end -%>
+    </head>
+    <body id="post" class="<%= h post.slug %>">
+        <header>
+            <h1 class="text-2xl font-bold"><%= h post.title %></h1>
+            <p class="font-bold m-0">
+                <span id="publish-at">
+                    <time datetime="<%= iso post.date %>"><%= ymd post.date %></time>
+                    <span>&middot;</span>
+                </span>
+                <a href="index.html"><%= h config.title %></a>
+            </p>
+
+            <hr>
+        </header>
+        <main>
+            <article class="md">
+<%= post.html %>
+
+                <div class="tags mt-4">
+                    <% post.tags.each do |tag| -%>
+                    <span class="tag"><%= h tag %></span>
+                    <% end -%>
+                </div>
+
+                <div id="last-updated" class="text-sm">
+                    last updated: <time datetime="<%= iso post.updated_at %>"><%= ymd post.updated_at %></time>
+                </div>
+
+                <div id="post-footer"></div>
+            </article>
+        </main>
+        <footer>
+            <hr>
+            <%= config.footer %>
+        </footer>
+    </body>
+</html>

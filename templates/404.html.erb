@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>404 &middot; <%= h config.title %></title>
+
+        <meta name="robots" content="noindex">
+        <% if config.favicon -%>
+        <link rel="icon" href="<%= h config.favicon %>">
+        <% else -%>
+        <link rel="icon" type="image/svg+xml" href="favicon.svg">
+        <% end -%>
+
+        <link rel="stylesheet" href="blog.css">
+        <link rel="stylesheet" href="syntax.css">
+        <% if config.styles? -%>
+        <link rel="stylesheet" href="_styles.css">
+        <% end -%>
+    </head>
+    <body id="not-found" class="not-found">
+        <header>
+            <h1 class="text-2xl font-bold">404</h1>
+            <p class="font-bold m-0">
+                <a href="index.html"><%= h config.title %></a>
+            </p>
+
+            <hr>
+        </header>
+        <main>
+            <div class="md">
+                <p>There is nothing at this address.</p>
+                <p><a href="index.html">Back to the index</a></p>
+            </div>
+        </main>
+        <footer>
+            <hr>
+            <%= config.footer %>
+        </footer>
+    </body>
+</html>

@@ -1,0 +1,4 @@
+ok  post page is a document => true
+ok  index is a document => true
+ok  404 is a document => true
+ok  feed is xml => true

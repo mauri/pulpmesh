@@ -1,0 +1,12 @@
+ok  no fence: data => ""
+ok  no fence: body => "# Title\n\nbody\n"
+ok  split: data => "date=\"2026-06-20\""
+ok  split: body => "\n# Title\n"
+ok  apostrophes and colons kept => "mauri's devlog: notes"
+ok  boolean coerced => false
+ok  list coerced => ["a", "b"]
+ok  list from bare string => ["a", "b"]
+ok  list from nil => []
+ok  list from array => ["x"]
+ok  keys downcased => "title=\"T\""
+ok  comment skipped => "a=\"1\""

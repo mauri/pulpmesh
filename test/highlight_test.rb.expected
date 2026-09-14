@@ -1,0 +1,19 @@
+ok  shell prompt and option => "<div class=\"language-sh highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code><span class=\"nv\">$ </span><span class=\"nb\">ls</span> <span class=\"nt\">-l</span>\n</code></pre></div></div>"
+ok  shell comment => true
+ok  shell keyword absorbs the space before a word => "<div class=\"language-sh highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code><span class=\"k\">if </span><span class=\"nb\">true</span>\n</code></pre></div></div>"
+ok  shell double-quoted string => true
+ok  shell variable => true
+ok  shell assignment => true
+ok  shell single-quoted string => true
+ok  shell command substitution => true
+ok  glued pipe stays plain => false
+ok  ruby keyword and method name => true
+ok  ruby comment => true
+ok  ruby symbol => true
+ok  ruby ivar => true
+ok  ruby integer => true
+ok  ruby interpolation => true
+ok  html in code is escaped => true
+ok  unknown language => "<pre><code class=\"language-notalang\">x = 1\n</code></pre>\n"
+ok  fence with no language => "<pre><code>plain &lt;tag&gt;\n</code></pre>\n"
+ok  fenced shell inside markdown => true

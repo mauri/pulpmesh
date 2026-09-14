@@ -1,0 +1,257 @@
+/* ===========================================================================
+   blog.css — the base layer pulpmesh ships with.
+
+   Readable defaults plus the handful of utility classes the templates use. A
+   site's own _styles.css is linked after this file and overrides it.
+   =========================================================================== */
+
+/* The pulpme.sh palette: warm paper in light, near black in dark, both
+   linking in the brand green. */
+:root {
+  --bg: #fbfaf7;
+  --fg: #1c1b19;
+  --dim: #6d6a63;
+  --accent: #0d8250;
+  --link: var(--accent);
+  --rule: #e0ddd4;
+  --pre: #f3f0e9;
+  --code: #ebe8de;
+  /* The wordmark is drawn in neon, which is loud on a pale background. */
+  --logo-adjust: brightness(0.86) saturate(1.15);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d0d0f;
+    --fg: #e8e6e1;
+    --dim: #8b8880;
+    --accent: #35d68a;
+    --rule: #24242a;
+    --pre: #16161a;
+    --code: #1f1f26;
+    --logo-adjust: none;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+a,
+a:visited {
+  color: var(--link);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  line-height: 1.25;
+}
+
+p {
+  margin: 0 0 1rem;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--rule);
+  margin: 1rem 0;
+}
+
+img {
+  max-width: 100%;
+}
+
+blockquote {
+  margin: 1rem 0;
+  padding-left: 1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--dim);
+}
+
+table {
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border: 1px solid var(--rule);
+  padding: 4px 8px;
+}
+
+/* ---- code -------------------------------------------------------------- */
+/* Code blocks are painted from --pre with !important so a syntax theme's own
+   background can never fight the site theme. */
+code {
+  font-family: ui-monospace, monospace;
+  background: var(--code);
+  border-radius: 3px;
+  padding: 0 4px;
+}
+
+pre {
+  background: var(--pre) !important;
+  padding: 10px 12px;
+  overflow-x: auto;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+}
+
+.highlight,
+.highlighter-rouge {
+  background: var(--pre) !important;
+}
+
+/* ---- footer ------------------------------------------------------------ */
+footer {
+  color: var(--dim);
+  margin-top: 2rem;
+}
+
+/* The feed link trails the footer as a quiet last line. */
+nav.feed {
+  color: var(--dim);
+  margin-top: 1rem;
+}
+
+/* The wordmark in the default footer line. The svg has room above and below
+   the letters, so it is set taller than the text and dropped below the
+   baseline to sit on it. */
+footer img {
+  height: 1.6em;
+  width: auto;
+  vertical-align: -0.45em;
+  filter: var(--logo-adjust);
+}
+
+/* ---- post list --------------------------------------------------------- */
+/* Titles and nav links are uppercased for the terminal-index look; anything
+   carrying real prose opts out with .transform-none. */
+.posts a,
+nav a {
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.posts a:hover,
+nav a:hover {
+  text-decoration: underline;
+}
+
+.transform-none,
+.transform-none a {
+  text-transform: none;
+}
+
+.posts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.posts li {
+  margin: 0.15rem 0;
+}
+
+.post-date {
+  color: var(--dim);
+  margin-right: 0.75rem;
+  white-space: nowrap;
+}
+
+.tags .tag {
+  color: var(--dim);
+  margin-right: 0.5rem;
+}
+
+.tags .tag::before {
+  content: "#";
+}
+
+#last-updated {
+  color: var(--dim);
+  margin-top: 1rem;
+}
+
+/* ---- utilities --------------------------------------------------------- */
+.text-sm {
+  font-size: 0.8rem;
+}
+
+.text-md {
+  font-size: 1.15rem;
+}
+
+.text-lg {
+  font-size: 1.35rem;
+}
+
+.text-xl {
+  font-size: 1.5rem;
+}
+
+.text-2xl {
+  font-size: 1.9rem;
+}
+
+.font-bold {
+  font-weight: bold;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.m-0 {
+  margin: 0;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+.mt-4 {
+  margin-top: 1rem;
+}
+
+.flex {
+  display: flex;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.group > * + * {
+  margin-top: 0.1rem;
+}

@@ -1,0 +1,9 @@
+ok  unknown command => "unknown command"
+ok  unknown option => "invalid option"
+ok  missing source => "not a directory"
+ok  source that is a file => "not a directory"
+ok  output that is the source => "output directory is the source directory"
+ok  output holding somebody else's files => "output directory contains the source directory"
+ok  colliding slugs => "0001-clash.md and 0002-clash.md both publish as clash.html"
+ok  unwritable output => "reported"
+ok  an impossible date falls back to mtime

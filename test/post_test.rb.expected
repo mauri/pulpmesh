@@ -1,0 +1,24 @@
+ok  ordinal prefix dropped => "ordinal-prefixed"
+ok  filename from slug => "ordinal-prefixed.html"
+ok  date prefix dropped => "date-prefixed"
+ok  unprefixed name kept => "with-code"
+ok  title from leading heading => "Ordinal prefixed post"
+ok  heading not left in body => false
+ok  body kept => true
+ok  date from front matter => "2024-03-04"
+ok  date from filename prefix => "2025-10-01"
+ok  tags parsed => ["ruby", "testing"]
+ok  description parsed => "the one with the ordinal prefix"
+ok  untagged post has no tags => []
+ok  draft recognised => true
+ok  non-draft recognised => false
+ok  code block highlighted => true
+ok  spaces become dashes => "my-first-post.html"
+ok  runs collapse to one dash => "a-b.html"
+ok  query and fragment characters go => "what-1-50.html"
+ok  colons and backslashes go => "a-b-c.html"
+ok  dots and underscores are kept => "v1.2_final.html"
+ok  accents are kept => "caf\\u00E9.html"
+ok  edges are trimmed => "hello.html"
+ok  a name with nothing usable in it is refused => "---.md has no usable name"
+ok  date falls back to mtime
